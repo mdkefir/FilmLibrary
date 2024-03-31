@@ -197,8 +197,6 @@ public class MainController {
         }
         Image image = new Image(is);
         ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(225);
-        imageView.setFitWidth(150);
         Label label = new Label(title);
         vbox.getChildren().addAll(imageView, label);
         vbox.getStyleClass().add("filmListTile"); // Добавьте класс стилей, как в вашем FXML
@@ -304,6 +302,8 @@ public class MainController {
         ImageView imageView = new ImageView(image);
         Label label = new Label(movie.getTitle());
         vbox.getChildren().addAll(imageView, label);
+        imageView.setFitHeight(225);
+        imageView.setFitWidth(150);
         return vbox;
     }
 
