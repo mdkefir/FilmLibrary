@@ -17,7 +17,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            primaryStage.setMinWidth(980);
+            primaryStage.setMinWidth(925);
             primaryStage.setMinHeight(620);
             Button closeButton = new Button("Закрыть");
             closeButton.setOnAction(e -> primaryStage.close());

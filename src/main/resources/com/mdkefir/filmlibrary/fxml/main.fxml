@@ -144,9 +144,9 @@
                         </AnchorPane>
                         <ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background-color: #1e252b;">
                             <content>
-                                <TilePane fx:id="moviesTilePane" alignment="TOP_LEFT" hgap="-110" prefColumns="3" prefRows="3" style="-fx-background-color: #1e252b;" vgap="10">
+                                <TilePane fx:id="moviesTilePane" alignment="TOP_LEFT" hgap="10" prefColumns="3" prefRows="3" style="-fx-background-color: #1e252b;" vgap="0">
                                     <padding>
-                                        <Insets bottom="5" left="-60" right="-70" top="5" />
+                                        <Insets bottom="0" left="15" right="5" top="0" />
                                     </padding>
                                     <!-- Ваши элементы VBox здесь -->
                                 </TilePane>

@@ -131,20 +131,22 @@ public class MainController {
 
     public List<Movie> parseKinopoisk() {
         List<Movie> movies = new ArrayList<>();
+        String baseUrl = "https://lordfilm.ai/filmy/page/";
         try {
-            String baseUrl = "https://lordfilm.ai/";
-            Document doc = Jsoup.connect(baseUrl).get();
-            Elements movieElements = doc.select(".th-item"); // Обновленный селектор
+            for (int i = 1; i <= 10; i++) { // Loop through pages 1 to 5
+                Document doc = Jsoup.connect(baseUrl + i + "/").get();
+                Elements movieElements = doc.select(".sect-cont.sect-items.clearfix .th-item"); // Обновленный селектор
 
-            for (Element movieElement : movieElements) {
-                String title = movieElement.select(".th-title").text();
-                String imageUrl = movieElement.select("img").first().absUrl("src");
+                for (Element movieElement : movieElements) {
+                    String title = movieElement.select(".th-title").text();
+                    String imageUrl = movieElement.select("img").first().absUrl("src");
 
-                if (!imageUrl.isEmpty()) {
-                    // Download image and get local path
-                    String localImagePath = downloadAndConvertImage(imageUrl, "/com/mdkefir/filmlibrary/images/");
-                    // Use local path instead of URL
-                    movies.add(new Movie(title, localImagePath));
+                    if (!imageUrl.isEmpty()) {
+                        // Download image and get local path
+                        String localImagePath = downloadAndConvertImage(imageUrl, "/com/mdkefir/filmlibrary/images/");
+                        // Use local path instead of URL
+                        movies.add(new Movie(title, localImagePath));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -154,6 +156,32 @@ public class MainController {
         }
         return movies;
     }
+
+    /*
+    public List<Movie> parseKinopoisk() {
+    List<Movie> movies = new ArrayList<>();
+    String baseUrl = "https://lordfilm.ai/filmy/page/";
+
+    try {
+        for (int i = 1; i <= 5; i++) { // Loop through pages 1 to 5
+            Document doc = Jsoup.connect(baseUrl + i + "/").get();
+            Elements movieElements = doc.select(".sect-cont.sect-items.clearfix .th-item");
+
+            for (Element movieElement : movieElements) {
+                String title = movieElement.select(".th-title").text();
+                String imageUrl = movieElement.select("img").first().absUrl("src");
+
+                if (!imageUrl.isEmpty()) {
+                    movies.add(new Movie(title, imageUrl));
+                }
+            }
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+    return movies;
+}*/
     @FXML
     private List<Series> getSeries() {
         return List.of(
@@ -198,6 +226,8 @@ public class MainController {
         Image image = new Image(is);
         ImageView imageView = new ImageView(image);
         Label label = new Label(title);
+        label.setMaxWidth(150);
+        label.setWrapText(true); // Включаем перенос текста
         vbox.getChildren().addAll(imageView, label);
         vbox.getStyleClass().add("filmListTile"); // Добавьте класс стилей, как в вашем FXML
         return vbox;
@@ -293,17 +323,22 @@ public class MainController {
         }
     }
 
-    private Node createMovieNode(Movie movie) throws FileNotFoundException, URISyntaxException {
+    private Node createMovieNode(Movie movie) throws FileNotFoundException {
         VBox vbox = new VBox();
         vbox.setAlignment(Pos.CENTER);
-        // Create an Image object using the file path
+
         File file = new File(movie.getImagePath());
         Image image = new Image(file.toURI().toString());
         ImageView imageView = new ImageView(image);
-        Label label = new Label(movie.getTitle());
-        vbox.getChildren().addAll(imageView, label);
         imageView.setFitHeight(225);
         imageView.setFitWidth(150);
+
+        Label label = new Label(movie.getTitle());
+        label.setMaxWidth(150);
+        label.setWrapText(true); // Включаем перенос текста
+
+        vbox.getChildren().addAll(imageView, label);
+
         return vbox;
     }
 
