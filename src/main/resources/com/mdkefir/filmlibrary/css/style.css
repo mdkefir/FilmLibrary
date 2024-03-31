@@ -1,0 +1,145 @@
+.root {
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-base: #2D3841FF;
+    -fx-control-inner-background: #2D3841FF;
+    /* Цвета для акцентирования */
+    -fx-accent: #2d3841;
+}
+
+.menu-bar {
+    -fx-font-family: 'System'; /* Здесь вы можете указать шрифт, который хотите использовать для MenuBar */
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: #1e252b;
+}
+
+
+.split-pane {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.split-pane .split-pane-divider {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar {
+    -fx-background-color: #696969;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #808080;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #656565;
+}
+
+.toggle-button {
+    /* Устанавливаем шрифт и размер текста */
+    -fx-font-family: "Montserrat SemiBold", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500; /* Это значение может не поддерживаться напрямую, поэтому вам может понадобиться использовать более тяжелый шрифт */
+    -fx-line-height: 18px; /* Это значение может быть не применимо в JavaFX CSS */
+
+    /* Настройка отображения */
+    -fx-alignment: center-left;
+
+    /* Переходы и анимации */
+    -fx-transition: color .1s ease-out; /* В JavaFX это делается через Timeline или анимацию, -fx-transition не существует */
+    -fx-padding: 0 0 0 20; /* Верхний, правый, нижний, левый */
+    /* Другие необходимые настройки */
+    -fx-margin-right: 20px; /* JavaFX не поддерживает свойство -fx-margin. Вам нужно будет использовать другие методы для задания отступов, такие как HBox с spacing */
+    -fx-background-color: transparent; /* Убираем фон кнопки */
+    -fx-text-fill: #b1b3b4; /* Начальный цвет текста*/
+}
+
+.togglebutton_category:hover {
+    -fx-text-fill: #ffffff; /* Цвет текста при наведении, здесь белый */
+}
+
+.togglebutton_category:focused, .togglebutton_category:pressed .togglebutton_category:selected {
+    -fx-background-color: #2d3841; /* Красный фон для активной кнопки */
+    -fx-text-fill: #ffffff; /* Белый цвет текста для активной кнопки */
+}
+
+.button{
+    -fx-background-color: #1E252BFF;
+
+}
+
+.button:hover {
+    -fx-background-color: #2d3841;
+}
+
+.text-field {
+    -fx-background-color: #181d20;
+}
+
+.no_borders {
+    -fx-background-insets: 0;
+}
+
+.menu-bar .menu .label {
+    -fx-text-fill: #ffffff; /* Замените 'black' на нужный вам цвет */
+}
+.menu-bar .menu .menu-item {
+    -fx-background-color: #2D3841; /* Ваш цвет фона */
+    -fx-padding: 0;
+    -fx-border-color: #2D3841; /* Установите цвет границы, совпадающий с фоном */
+    -fx-border-insets: 0;
+}
+
+
+.menu-bar .menu .separator{
+    -fx-background-color: #181d20;
+}
+
+.menu-bar .menu .menu-item:hover {
+    -fx-background-color: #3b4956; /* Ваш цвет фона */
+}
+
+.text-field {
+    -fx-text-fill: #ffffff;
+}
+
+.filmListTile{
+    -fx-background-color: #151a1e;
+    -fx-alignment: center;
+}
+
+.scroll-pane .label {
+    -fx-font-family: 'Montserrat', sans-serif;
+}
+
+.label-gray {
+    -fx-text-fill: #b1b3b4;
+}
+
+.button-filters{
+    /* Устанавливаем шрифт и размер текста */
+    -fx-font-family: "Montserrat SemiBold", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500; /* Это значение может не поддерживаться напрямую, поэтому вам может понадобиться использовать более тяжелый шрифт */
+    -fx-line-height: 18px; /* Это значение может быть не применимо в JavaFX CSS */
+
+
+    /* Переходы и анимации */
+    -fx-transition: color .1s ease-out; /* В JavaFX это делается через Timeline или анимацию, -fx-transition не существует */
+    /* Другие необходимые настройки */
+    -fx-background-color: transparent; /* Убираем фон кнопки */
+    -fx-text-fill: #b1b3b4; /* Начальный цвет текста*/
+}
+
+.button-filters:hover{
+    -fx-text-fill: #FFFFFF;
+    -fx-background-color: transparent; /* Убираем фон кнопки */
+}
+
+.text-field{
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #b1b3b4;
+}
