@@ -55,7 +55,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox fx:id="mainVBox" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" style="-fx-background-color: #151a1e;" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdkefir.filmlibrary.controllers.MainController">
+<VBox fx:id="mainVBox" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="960.0" style="-fx-background-color: #151a1e;" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdkefir.filmlibrary.controllers.MainController">
     <children>
         <MenuBar style="-fx-background-color: #151a1e;" VBox.vgrow="NEVER">
             <menus>
@@ -144,9 +144,9 @@
                         </AnchorPane>
                         <ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background-color: #1e252b;">
                             <content>
-                                <TilePane fx:id="moviesTilePane" alignment="TOP_LEFT" hgap="10" prefColumns="3" prefRows="3" style="-fx-background-color: #1e252b;" vgap="10">
+                                <TilePane fx:id="moviesTilePane" alignment="TOP_LEFT" hgap="-110" prefColumns="3" prefRows="3" style="-fx-background-color: #1e252b;" vgap="10">
                                     <padding>
-                                        <Insets bottom="5" left="10" right="10" top="5" />
+                                        <Insets bottom="5" left="-60" right="-70" top="5" />
                                     </padding>
                                     <!-- Ваши элементы VBox здесь -->
                                 </TilePane>

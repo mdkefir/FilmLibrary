@@ -3,23 +3,36 @@ package com.mdkefir.filmlibrary.controllers;
 import com.mdkefir.filmlibrary.models.Movie;
 import com.mdkefir.filmlibrary.models.Series;
 import com.mdkefir.filmlibrary.models.SportEvent;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-import java.io.InputStream;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import javax.imageio.ImageIO;
 
 public class MainController {
 
@@ -57,21 +70,89 @@ public class MainController {
 
     @FXML
     private ToggleGroup categoryToggleGroup = new ToggleGroup();
-    @FXML
-    private List<Movie> getMovies() {
-        return List.of(
-                new Movie("Терминатор 2: СД", "/com/mdkefir/filmlibrary/images/movies/1.png"),
-                new Movie("1+1", "/com/mdkefir/filmlibrary/images/movies/2.png"),
-                new Movie("Ходячий замок", "/com/mdkefir/filmlibrary/images/movies/3.png"),
-                new Movie("Список Шиндлера", "/com/mdkefir/filmlibrary/images/movies/4.png"),
-                new Movie("Властелин колец", "/com/mdkefir/filmlibrary/images/movies/5.png"),
-                new Movie("Бойцовский клуб", "/com/mdkefir/filmlibrary/images/movies/6.png"),
-                new Movie("Интерстеллар", "/com/mdkefir/filmlibrary/images/movies/7.png"),
-                new Movie("Форрест Гамп", "/com/mdkefir/filmlibrary/images/movies/8.png"),
-                new Movie("Зеленая миля", "/com/mdkefir/filmlibrary/images/movies/9.png"),
-                new Movie("Властелин колец 2", "/com/mdkefir/filmlibrary/images/movies/10.png")
-                // Добавьте больше фильмов
-        );
+
+    public void getMovies() {
+        new Thread(() -> {
+            try {
+                List<Movie> movies = parseKinopoisk();
+                Platform.runLater(() -> {
+                    // обновите ваш TilePane с помощью полученных данных
+                    try {
+                        updateTilePaneContent(movies);
+                    } catch (FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public String downloadImage(String imageUrl, String s) throws IOException {
+        // Create a URL object from the image URL string
+        URL url = new URL(imageUrl);
+        // Extract the file name from the URL
+        String fileName = Paths.get(url.getPath()).getFileName().toString();
+        // Define the path where the image will be saved
+        Path targetPath = Paths.get(System.getProperty("user.dir")).resolve("images").resolve(fileName);
+
+        // Open a stream to the image URL
+        try (InputStream in = url.openStream()) {
+            // Copy the image to the target path, replacing any existing file
+            Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        // Return the file path as a string
+        return targetPath.toString();
+    }
+
+    public String downloadAndConvertImage(String imageUrl, String destinationFolder) throws IOException, URISyntaxException {
+        // Скачивание изображения
+        String imageExtension = imageUrl.substring(imageUrl.lastIndexOf(".") + 1);
+        String localImagePath = downloadImage(imageUrl, destinationFolder);
+
+        // Конвертация в формат PNG, если это необходимо
+        if (!"png".equals(imageExtension) && !"jpg".equals(imageExtension)) {
+            String outputImagePath = localImagePath.substring(0, localImagePath.lastIndexOf(".")) + ".png";
+            convertToPng(localImagePath, outputImagePath);
+            return outputImagePath; // Вернуть новый путь к изображению
+        }
+
+        return localImagePath; // Вернуть исходный путь к изображению
+    }
+
+    public static void convertToPng(String inputImagePath, String outputImagePath) throws IOException {
+        BufferedImage bufferedImage = ImageIO.read(new File(inputImagePath));
+        ImageIO.write(bufferedImage, "png", new File(outputImagePath));
+    }
+
+    public List<Movie> parseKinopoisk() {
+        List<Movie> movies = new ArrayList<>();
+        try {
+            String baseUrl = "https://lordfilm.ai/";
+            Document doc = Jsoup.connect(baseUrl).get();
+            Elements movieElements = doc.select(".th-item"); // Обновленный селектор
+
+            for (Element movieElement : movieElements) {
+                String title = movieElement.select(".th-title").text();
+                String imageUrl = movieElement.select("img").first().absUrl("src");
+
+                if (!imageUrl.isEmpty()) {
+                    // Download image and get local path
+                    String localImagePath = downloadAndConvertImage(imageUrl, "/com/mdkefir/filmlibrary/images/");
+                    // Use local path instead of URL
+                    movies.add(new Movie(title, localImagePath));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        return movies;
     }
     @FXML
     private List<Series> getSeries() {
@@ -99,9 +180,6 @@ public class MainController {
                 // Добавьте больше спортивных событий
         );
     }
-    private Node getContentForMovies() {
-        return createContentTilePane(getMovies());
-    }
 
     private Node getContentForSeries() {
         return createContentTilePane(getSeries());
@@ -119,8 +197,6 @@ public class MainController {
         }
         Image image = new Image(is);
         ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(225);
-        imageView.setFitWidth(150);
         Label label = new Label(title);
         vbox.getChildren().addAll(imageView, label);
         vbox.getStyleClass().add("filmListTile"); // Добавьте класс стилей, как в вашем FXML
@@ -135,12 +211,11 @@ public class MainController {
         sportsButton.setToggleGroup(categoryToggleGroup);
 
         // настройка категорий для отображения
-        moviesButton.setOnAction(event -> updateTilePaneContent(getContentForMovies()));
-        seriesButton.setOnAction(event -> updateTilePaneContent(getContentForSeries()));
-        sportsButton.setOnAction(event -> updateTilePaneContent(getContentForSports()));
+        moviesButton.setOnAction(event -> loadMovies());
+        seriesButton.setOnAction(event -> loadMovies()); // Обновите для работы с сериалами
+        sportsButton.setOnAction(event -> loadMovies()); // Обновите для работы со спортивными событиями
 
-        // По умолчанию показываем контент для фильмов
-        updateTilePaneContent(getContentForMovies());
+        loadMovies(); // Загрузка фильмов при инициализации
 
         // Найти все VBox'ы с классом "film-box"
         List<VBox> filmBoxes = moviesTilePane.getChildren().stream()
@@ -195,17 +270,57 @@ public class MainController {
     private void onRatingSelected(ActionEvent event) {
         // Логика обработки выбора рейтинга
     }
-    @FXML
-    private void updateTilePaneContent(Node content) {
-        if (content instanceof ScrollPane) {
-            ScrollPane scrollPane = (ScrollPane) content;
-            if (scrollPane.getContent() instanceof TilePane) {
-                TilePane newTilePane = (TilePane) scrollPane.getContent();
-
-                moviesTilePane.getChildren().clear(); // Очистка текущего содержимого TilePane
-                moviesTilePane.getChildren().addAll(newTilePane.getChildren()); // Добавление нового содержимого
-            }
+    public void updateMovieList() {
+        new Thread(() -> {
+            List<Movie> movies = parseKinopoisk();
+            Platform.runLater(() -> {
+                try {
+                    updateTilePaneContent(movies);
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }).start();
+    }
+    // Этот метод теперь принимает List<Movie> и обновляет moviesTilePane
+    public void updateTilePaneContent(List<Movie> movies) throws FileNotFoundException, URISyntaxException {
+        moviesTilePane.getChildren().clear();
+        for (Movie movie : movies) {
+            Node movieNode = createMovieNode(movie);
+            moviesTilePane.getChildren().add(movieNode);
         }
+    }
+
+    private Node createMovieNode(Movie movie) throws FileNotFoundException, URISyntaxException {
+        VBox vbox = new VBox();
+        vbox.setAlignment(Pos.CENTER);
+        // Create an Image object using the file path
+        File file = new File(movie.getImagePath());
+        Image image = new Image(file.toURI().toString());
+        ImageView imageView = new ImageView(image);
+        Label label = new Label(movie.getTitle());
+        vbox.getChildren().addAll(imageView, label);
+        imageView.setFitHeight(225);
+        imageView.setFitWidth(150);
+        return vbox;
+    }
+
+    // Этот метод вызывается при инициализации или при смене категории
+    public void loadMovies() {
+        new Thread(() -> {
+            List<Movie> movies = parseKinopoisk(); // Парсинг данных
+            Platform.runLater(() -> {
+                try {
+                    updateTilePaneContent(movies); // Обновление UI
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }).start();
     }
 
     private Node createContentTilePane(List<?> contents) {
