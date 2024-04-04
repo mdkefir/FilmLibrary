@@ -2,7 +2,7 @@ package com.mdkefir.filmlibrary.controllers;
 
 import com.mdkefir.filmlibrary.models.Movie;
 import com.mdkefir.filmlibrary.models.Series;
-import com.mdkefir.filmlibrary.models.SportEvent;
+import com.mdkefir.filmlibrary.models.Cartoon;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -27,6 +28,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -66,30 +70,10 @@ public class MainController {
     private ToggleButton seriesButton;
 
     @FXML
-    private ToggleButton sportsButton;
+    private ToggleButton cartoonsButton;
 
     @FXML
     private ToggleGroup categoryToggleGroup = new ToggleGroup();
-
-    public void getMovies() {
-        new Thread(() -> {
-            try {
-                List<Movie> movies = parseKinopoisk();
-                Platform.runLater(() -> {
-                    // обновите ваш TilePane с помощью полученных данных
-                    try {
-                        updateTilePaneContent(movies);
-                    } catch (FileNotFoundException e) {
-                        throw new RuntimeException(e);
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
 
     public String downloadImage(String imageUrl, String s) throws IOException {
         // Create a URL object from the image URL string
@@ -129,36 +113,33 @@ public class MainController {
         ImageIO.write(bufferedImage, "png", new File(outputImagePath));
     }
 
-    public List<Movie> parseKinopoisk() {
-        List<Movie> movies = new ArrayList<>();
-        String baseUrl = "https://lordfilm.ai/filmy/page/";
+    public List<Movie> parseMedia(String baseUrl, int totalPages) {
+        List<Movie> mediaList = new ArrayList<>();
         try {
-            for (int i = 1; i <= 10; i++) { // Loop through pages 1 to 5
-                Document doc = Jsoup.connect(baseUrl + i + "/").get();
-                Elements movieElements = doc.select(".sect-cont.sect-items.clearfix .th-item"); // Обновленный селектор
+            for (int i = 1; i <= totalPages; i++) {
+                Document doc = Jsoup.connect(baseUrl + "page/" + i + "/").get();
+                Elements mediaElements = doc.select(".sect-cont.sect-items.clearfix .th-item");
 
-                for (Element movieElement : movieElements) {
-                    String title = movieElement.select(".th-title").text();
-                    String imageUrl = movieElement.select("img").first().absUrl("src");
+                for (Element mediaElement : mediaElements) {
+                    String title = mediaElement.select(".th-title").text();
+                    String year = mediaElement.select(".th-year").text();
+                    String rating = mediaElement.select(".th-rates .th-rate.th-rate-imdb").text();
+                    String imageUrl = mediaElement.select("img").first().absUrl("src");
 
                     if (!imageUrl.isEmpty()) {
-                        // Download image and get local path
-                        String localImagePath = downloadAndConvertImage(imageUrl, "/com/mdkefir/filmlibrary/images/");
-                        // Use local path instead of URL
-                        movies.add(new Movie(title, localImagePath));
+                        String localImagePath = downloadAndConvertImage(imageUrl, "images/"); // Путь к папке images внутри проекта
+                        mediaList.add(new Movie(title, year, rating, localImagePath));
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
         }
-        return movies;
+        return mediaList;
     }
 
     /*
-    public List<Movie> parseKinopoisk() {
+    public List<Movie> parseFilms() {
     List<Movie> movies = new ArrayList<>();
     String baseUrl = "https://lordfilm.ai/filmy/page/";
 
@@ -182,68 +163,18 @@ public class MainController {
 
     return movies;
 }*/
-    @FXML
-    private List<Series> getSeries() {
-        return List.of(
-                new Series("Во все тяжкие", "/com/mdkefir/filmlibrary/images/series/1.png"),
-                new Series("Игра престолов", "/com/mdkefir/filmlibrary/images/series/2.png"),
-                new Series("Клан Сопрано", "/com/mdkefir/filmlibrary/images/series/3.png"),
-                new Series("Офис", "/com/mdkefir/filmlibrary/images/series/4.png"),
-                new Series("Друзья", "/com/mdkefir/filmlibrary/images/series/5.png"),
-                new Series("Гравити Фолз", "/com/mdkefir/filmlibrary/images/series/6.png"),
-                new Series("Тед Лассо", "/com/mdkefir/filmlibrary/images/series/7.png"),
-                new Series("Атака Титанов", "/com/mdkefir/filmlibrary/images/series/8.png"),
-                new Series("Шерлок", "/com/mdkefir/filmlibrary/images/series/9.png"),
-                new Series("Чернобыль", "/com/mdkefir/filmlibrary/images/series/10.png"),
-                new Series("Голяк", "/com/mdkefir/filmlibrary/images/series/11.png"),
-                new Series("Крепость Бадабер", "/com/mdkefir/filmlibrary/images/series/12.png")
-                // Добавьте больше сериалов
-        );
-    }
-    @FXML
-    private List<SportEvent> getSportEvents() {
-        return List.of(
-                new SportEvent("World Cup 2022", "/com/mdkefir/filmlibrary/images/sportevent/1.png"),
-                new SportEvent("Олимпийские игры 2014", "/com/mdkefir/filmlibrary/images/sportevent/2.png")
-                // Добавьте больше спортивных событий
-        );
-    }
-
-    private Node getContentForSeries() {
-        return createContentTilePane(getSeries());
-    }
-
-    private Node getContentForSports() {
-        return createContentTilePane(getSportEvents());
-    }
-    @FXML
-    private VBox createVBoxForContent(String title, String imagePath) {
-        VBox vbox = new VBox(5);
-        InputStream is = getClass().getResourceAsStream(imagePath);
-        if (is == null) {
-            throw new IllegalArgumentException("ПОСОСИПОСОСИПОСОСИПОСОСИ " + imagePath);
-        }
-        Image image = new Image(is);
-        ImageView imageView = new ImageView(image);
-        Label label = new Label(title);
-        label.setMaxWidth(150);
-        label.setWrapText(true); // Включаем перенос текста
-        vbox.getChildren().addAll(imageView, label);
-        vbox.getStyleClass().add("filmListTile"); // Добавьте класс стилей, как в вашем FXML
-        return vbox;
-    }
 
     @FXML
     public void initialize() {
         // Назначаем все кнопки одной группе
         moviesButton.setToggleGroup(categoryToggleGroup);
         seriesButton.setToggleGroup(categoryToggleGroup);
-        sportsButton.setToggleGroup(categoryToggleGroup);
+        cartoonsButton.setToggleGroup(categoryToggleGroup);
 
         // настройка категорий для отображения
         moviesButton.setOnAction(event -> loadMovies());
-        seriesButton.setOnAction(event -> loadMovies()); // Обновите для работы с сериалами
-        sportsButton.setOnAction(event -> loadMovies()); // Обновите для работы со спортивными событиями
+        seriesButton.setOnAction(event -> loadSeries());
+        cartoonsButton.setOnAction(event -> loadCartoons());
 
         loadMovies(); // Загрузка фильмов при инициализации
 
@@ -300,20 +231,6 @@ public class MainController {
     private void onRatingSelected(ActionEvent event) {
         // Логика обработки выбора рейтинга
     }
-    public void updateMovieList() {
-        new Thread(() -> {
-            List<Movie> movies = parseKinopoisk();
-            Platform.runLater(() -> {
-                try {
-                    updateTilePaneContent(movies);
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        }).start();
-    }
     // Этот метод теперь принимает List<Movie> и обновляет moviesTilePane
     public void updateTilePaneContent(List<Movie> movies) throws FileNotFoundException, URISyntaxException {
         moviesTilePane.getChildren().clear();
@@ -326,6 +243,7 @@ public class MainController {
     private Node createMovieNode(Movie movie) throws FileNotFoundException {
         VBox vbox = new VBox();
         vbox.setAlignment(Pos.CENTER);
+        vbox.setStyle("-fx-background-color: #151A1EFF;");
 
         File file = new File(movie.getImagePath());
         Image image = new Image(file.toURI().toString());
@@ -333,60 +251,75 @@ public class MainController {
         imageView.setFitHeight(225);
         imageView.setFitWidth(150);
 
-        Label label = new Label(movie.getTitle());
-        label.setMaxWidth(150);
-        label.setWrapText(true); // Включаем перенос текста
+        Label titleLabel = new Label(movie.getTitle());
+        titleLabel.setMaxWidth(150);
+        titleLabel.setWrapText(true);
+        titleLabel.setStyle("-fx-font-weight: bold;");
+        titleLabel.setAlignment(Pos.CENTER);
 
-        vbox.getChildren().addAll(imageView, label);
+        HBox hBox = new HBox();
+        hBox.setAlignment(Pos.CENTER);
+
+        Label yearLabel = new Label(movie.getYear() + ", ");
+        yearLabel.setAlignment(Pos.CENTER);
+
+        Label ratingLabel = new Label("✫" + movie.getRating());
+        ratingLabel.setStyle("-fx-text-fill: yellow;"); // Желтый цвет только для рейтинга
+        ratingLabel.setAlignment(Pos.CENTER);
+
+        hBox.getChildren().addAll(yearLabel, ratingLabel);
+        vbox.getChildren().addAll(imageView, titleLabel, hBox);
 
         return vbox;
     }
 
-    // Этот метод вызывается при инициализации или при смене категории
+    public void clearContent() {
+        if (!moviesTilePane.getChildren().isEmpty()) {
+            moviesTilePane.getChildren().clear();
+        }
+    }
+
+    // Отдельные методы для парсинга фильмов, сериалов и мультфильмов
     public void loadMovies() {
+        clearContent(); // очистка перед загрузкой
         new Thread(() -> {
-            List<Movie> movies = parseKinopoisk(); // Парсинг данных
+            List<Movie> movies = parseMedia("https://lordfilm.ai/filmy/", 5);
             Platform.runLater(() -> {
                 try {
-                    updateTilePaneContent(movies); // Обновление UI
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
+                    updateTilePaneContent(movies);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             });
         }).start();
     }
 
-    private Node createContentTilePane(List<?> contents) {
-        TilePane tilePane = new TilePane();
-
-        for (Object content : contents) {
-            if (content instanceof Movie) {
-                Movie movie = (Movie) content;
-                VBox vbox = createVBoxForContent(movie.getTitle(), movie.getImagePath());
-                tilePane.getChildren().add(vbox);
-            } else if (content instanceof Series) {
-                Series series = (Series) content;
-                VBox vbox = createVBoxForContent(series.getTitle(), series.getImagePath());
-                tilePane.getChildren().add(vbox);
-            } else if (content instanceof SportEvent) {
-                SportEvent sportEvent = (SportEvent) content;
-                VBox vbox = createVBoxForContent(sportEvent.getTitle(), sportEvent.getImagePath());
-                tilePane.getChildren().add(vbox);
-            }
-        }
-
-        // Create ScrollPane and bind TilePane's preferred width/height to ScrollPane's viewport dimensions
-        ScrollPane scrollPane = new ScrollPane(tilePane);
-        scrollPane.setFitToHeight(true);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: #1e252b;"); // Set the background color if not using CSS
-
-
-        return scrollPane;
+    public void loadSeries() {
+        clearContent(); // очистка перед загрузкой
+        new Thread(() -> {
+            List<Movie> series = parseMedia("https://lordfilm.ai/serialy/", 5);
+            Platform.runLater(() -> {
+                try {
+                    updateTilePaneContent(series);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }).start();
     }
 
-
+    public void loadCartoons() {
+        clearContent(); // очистка перед загрузкой
+        new Thread(() -> {
+            List<Movie> cartoons = parseMedia("https://lordfilm.ai/multserialy/", 3);
+            Platform.runLater(() -> {
+                try {
+                    updateTilePaneContent(cartoons);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }).start();
+    }
 
 }
