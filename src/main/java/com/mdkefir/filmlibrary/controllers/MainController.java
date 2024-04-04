@@ -43,7 +43,7 @@ public class MainController {
 
     @FXML private TextField searchField;
 
-    private String currentCategory = "movies";
+    private String currentCategory;
 
     @FXML
     private Label filmLabel;
@@ -82,7 +82,7 @@ public class MainController {
 
     private AtomicInteger currentPage = new AtomicInteger(1);
     private volatile boolean isLoading = false;
-    private final int totalPages = 15;
+    private final int totalPages = 30;
 
     public String downloadImage(String imageUrl, String s) throws IOException {
         // Create a URL object from the image URL string
@@ -174,24 +174,42 @@ public class MainController {
     @FXML
     public void initialize() {
         // Назначаем все кнопки одной группе
-        moviesButton.setToggleGroup(categoryToggleGroup);
-        seriesButton.setToggleGroup(categoryToggleGroup);
-        cartoonsButton.setToggleGroup(categoryToggleGroup);
+        moviesButton.setOnAction(event -> {
+            currentPage.set(1); // Устанавливаем номер текущей страницы на 1
+            clearContent(); // Очищаем содержимое перед загрузкой нового
+            loadMovies();
+        });
 
-        // настройка категорий для отображения
-        moviesButton.setOnAction(event -> loadMovies());
-        seriesButton.setOnAction(event -> loadSeries());
-        cartoonsButton.setOnAction(event -> loadCartoons());
+        seriesButton.setOnAction(event -> {
+            currentPage.set(1); // Устанавливаем номер текущей страницы на 1
+            clearContent(); // Очищаем содержимое перед загрузкой нового
+            loadSeries();
+        });
+
+        cartoonsButton.setOnAction(event -> {
+            currentPage.set(1); // Устанавливаем номер текущей страницы на 1
+            clearContent(); // Очищаем содержимое перед загрузкой нового
+            loadCartoons();
+        });
 
         scrollPaneMovie.vvalueProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue.doubleValue() >= scrollPaneMovie.getVmax() - 0.5) { // Threshold can be adjusted
                 if (!isLoading && currentPage.get() <= totalPages) {
-                    loadMovies();
+                    switch (currentCategory) {
+                        case "movies":
+                            loadMovies();
+                            break;
+                        case "series":
+                            loadSeries();
+                            break;
+                        case "cartoons":
+                            loadCartoons();
+                            break;
+                    }
                 }
             }
         });
 
-        loadMovies(); // Загрузка фильмов при инициализации
 
         // Найти все VBox'ы с классом "film-box"
         List<VBox> filmBoxes = moviesTilePane.getChildren().stream()
@@ -295,12 +313,14 @@ public class MainController {
 
     // Отдельные методы для парсинга фильмов, сериалов и мультфильмов
     public void loadMovies() {
+        currentCategory = "movies";
         if (isLoading || currentPage.get() > totalPages) return; // Проверка, идет ли загрузка и есть ли еще страницы
         isLoading = true;
-
         int pageToLoad = currentPage.getAndIncrement(); // Получаем текущую страницу для загрузки и увеличиваем счетчик
+
         new Thread(() -> {
             List<Movie> movies = parseMedia("https://lordfilm.ai/filmy/", pageToLoad);
+            System.out.println("Страница фильма : " + pageToLoad);
             Platform.runLater(() -> {
                 try {
                     updateTilePaneContent(movies);
@@ -314,32 +334,42 @@ public class MainController {
     }
 
     public void loadSeries() {
+        currentCategory = "series";
         if (isLoading || currentPage.get() > totalPages) return; // Проверка, идет ли загрузка и есть ли еще страницы
         isLoading = true;
+        int pageToLoad = currentPage.getAndIncrement();
 
         new Thread(() -> {
-            List<Movie> series = parseMedia("https://lordfilm.ai/serialy/", 5);
+            List<Movie> series = parseMedia("https://lordfilm.ai/serialy/", pageToLoad);
+            System.out.println("Страница сериала : " + pageToLoad);
             Platform.runLater(() -> {
                 try {
                     updateTilePaneContent(series);
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    isLoading = false;
                 }
             });
         }).start();
     }
 
     public void loadCartoons() {
-        if (isLoading || currentPage.get() > totalPages) return; // Проверка, идет ли загрузка и есть ли еще страницы
+        currentCategory = "cartoons";
+        if (isLoading || currentPage.get() > 3) return; // Проверка, идет ли загрузка и есть ли еще страницы
         isLoading = true;
+        int pageToLoad = currentPage.getAndIncrement();
 
         new Thread(() -> {
-            List<Movie> cartoons = parseMedia("https://lordfilm.ai/multserialy/", 3);
+            List<Movie> cartoons = parseMedia("https://lordfilm.ai/multserialy/", pageToLoad);
+            System.out.println("Страница мультика : " + pageToLoad);
             Platform.runLater(() -> {
                 try {
                     updateTilePaneContent(cartoons);
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    isLoading = false;
                 }
             });
         }).start();
