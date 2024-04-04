@@ -27,6 +27,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javafx.scene.text.Text;
@@ -41,6 +42,8 @@ import javax.imageio.ImageIO;
 public class MainController {
 
     @FXML private TextField searchField;
+
+    private String currentCategory = "movies";
 
     @FXML
     private Label filmLabel;
@@ -62,6 +65,8 @@ public class MainController {
     private void handleSearch() {
         // Обработка поиска
     }
+    @FXML
+    private ScrollPane scrollPaneMovie; // Добавьте ScrollPane в FXML и свяжите его здесь
 
     @FXML
     private ToggleButton moviesButton;
@@ -74,6 +79,10 @@ public class MainController {
 
     @FXML
     private ToggleGroup categoryToggleGroup = new ToggleGroup();
+
+    private AtomicInteger currentPage = new AtomicInteger(1);
+    private volatile boolean isLoading = false;
+    private final int totalPages = 15;
 
     public String downloadImage(String imageUrl, String s) throws IOException {
         // Create a URL object from the image URL string
@@ -113,23 +122,21 @@ public class MainController {
         ImageIO.write(bufferedImage, "png", new File(outputImagePath));
     }
 
-    public List<Movie> parseMedia(String baseUrl, int totalPages) {
+    public List<Movie> parseMedia(String baseUrl, int page) {
         List<Movie> mediaList = new ArrayList<>();
         try {
-            for (int i = 1; i <= totalPages; i++) {
-                Document doc = Jsoup.connect(baseUrl + "page/" + i + "/").get();
-                Elements mediaElements = doc.select(".sect-cont.sect-items.clearfix .th-item");
+            Document doc = Jsoup.connect(baseUrl + "page/" + page + "/").get();
+            Elements mediaElements = doc.select(".sect-cont.sect-items.clearfix .th-item");
 
-                for (Element mediaElement : mediaElements) {
-                    String title = mediaElement.select(".th-title").text();
-                    String year = mediaElement.select(".th-year").text();
-                    String rating = mediaElement.select(".th-rates .th-rate.th-rate-imdb").text();
-                    String imageUrl = mediaElement.select("img").first().absUrl("src");
+            for (Element mediaElement : mediaElements) {
+                String title = mediaElement.select(".th-title").text();
+                String year = mediaElement.select(".th-year").text();
+                String rating = mediaElement.select(".th-rates .th-rate.th-rate-imdb").text();
+                String imageUrl = mediaElement.select("img").first().absUrl("src");
 
-                    if (!imageUrl.isEmpty()) {
-                        String localImagePath = downloadAndConvertImage(imageUrl, "images/"); // Путь к папке images внутри проекта
-                        mediaList.add(new Movie(title, year, rating, localImagePath));
-                    }
+                if (!imageUrl.isEmpty()) {
+                    String localImagePath = downloadAndConvertImage(imageUrl, "images/");
+                    mediaList.add(new Movie(title, year, rating, localImagePath));
                 }
             }
         } catch (IOException | URISyntaxException e) {
@@ -175,6 +182,14 @@ public class MainController {
         moviesButton.setOnAction(event -> loadMovies());
         seriesButton.setOnAction(event -> loadSeries());
         cartoonsButton.setOnAction(event -> loadCartoons());
+
+        scrollPaneMovie.vvalueProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue.doubleValue() >= scrollPaneMovie.getVmax() - 0.5) { // Threshold can be adjusted
+                if (!isLoading && currentPage.get() <= totalPages) {
+                    loadMovies();
+                }
+            }
+        });
 
         loadMovies(); // Загрузка фильмов при инициализации
 
@@ -233,7 +248,6 @@ public class MainController {
     }
     // Этот метод теперь принимает List<Movie> и обновляет moviesTilePane
     public void updateTilePaneContent(List<Movie> movies) throws FileNotFoundException, URISyntaxException {
-        moviesTilePane.getChildren().clear();
         for (Movie movie : movies) {
             Node movieNode = createMovieNode(movie);
             moviesTilePane.getChildren().add(movieNode);
@@ -281,21 +295,28 @@ public class MainController {
 
     // Отдельные методы для парсинга фильмов, сериалов и мультфильмов
     public void loadMovies() {
-        clearContent(); // очистка перед загрузкой
+        if (isLoading || currentPage.get() > totalPages) return; // Проверка, идет ли загрузка и есть ли еще страницы
+        isLoading = true;
+
+        int pageToLoad = currentPage.getAndIncrement(); // Получаем текущую страницу для загрузки и увеличиваем счетчик
         new Thread(() -> {
-            List<Movie> movies = parseMedia("https://lordfilm.ai/filmy/", 5);
+            List<Movie> movies = parseMedia("https://lordfilm.ai/filmy/", pageToLoad);
             Platform.runLater(() -> {
                 try {
                     updateTilePaneContent(movies);
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    isLoading = false; // Сбрасываем состояние загрузки
                 }
             });
         }).start();
     }
 
     public void loadSeries() {
-        clearContent(); // очистка перед загрузкой
+        if (isLoading || currentPage.get() > totalPages) return; // Проверка, идет ли загрузка и есть ли еще страницы
+        isLoading = true;
+
         new Thread(() -> {
             List<Movie> series = parseMedia("https://lordfilm.ai/serialy/", 5);
             Platform.runLater(() -> {
@@ -309,7 +330,9 @@ public class MainController {
     }
 
     public void loadCartoons() {
-        clearContent(); // очистка перед загрузкой
+        if (isLoading || currentPage.get() > totalPages) return; // Проверка, идет ли загрузка и есть ли еще страницы
+        isLoading = true;
+
         new Thread(() -> {
             List<Movie> cartoons = parseMedia("https://lordfilm.ai/multserialy/", 3);
             Platform.runLater(() -> {
