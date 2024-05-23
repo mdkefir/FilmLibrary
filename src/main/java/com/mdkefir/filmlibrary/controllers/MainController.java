@@ -1,21 +1,25 @@
 package com.mdkefir.filmlibrary.controllers;
 
+import com.mdkefir.filmlibrary.Database;
 import com.mdkefir.filmlibrary.models.Movie;
-import com.mdkefir.filmlibrary.models.Series;
-import com.mdkefir.filmlibrary.models.Cartoon;
+import com.mdkefir.filmlibrary.models.User;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.io.IOException;
@@ -25,13 +29,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
+import javafx.stage.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -43,7 +49,24 @@ public class MainController {
 
     @FXML private TextField searchField;
 
+    private AuthController authController;
     private String currentCategory;
+    private Stage loadingStage;
+
+    // Добавляем поля класса для использования в POPUP
+    private TextField emailField = new TextField();
+    private PasswordField passwordField = new PasswordField();
+    private Label statusLabel = new Label(""); // Для сообщений о состоянии
+
+    private Database db;
+
+    @FXML
+    private HBox searchHBox;
+
+    @FXML
+    private AnchorPane authPane; // Панель авторизации/регистрации
+    @FXML
+    private AnchorPane filtersPane; // Панель с фильтрами
 
     @FXML
     private Label filmLabel;
@@ -77,8 +100,25 @@ public class MainController {
     @FXML
     private ToggleButton cartoonsButton;
 
+    @FXML ToggleButton myAccountButton;
+
+    @FXML
+    private ToggleButton favoritesButton;
+
     @FXML
     private ToggleGroup categoryToggleGroup = new ToggleGroup();
+
+    @FXML
+    private ChoiceBox<String> genreChoiceBox;
+    @FXML
+    private ChoiceBox<String> yearChoiceBox;
+    @FXML
+    private ChoiceBox<String> countryChoiceBox;
+
+    private String selectedGenre = "";
+    private String selectedYear = "";
+    private String selectedCountry = "";
+
 
     private AtomicInteger currentPage = new AtomicInteger(1);
     private volatile boolean isLoading = false;
@@ -125,7 +165,7 @@ public class MainController {
     public List<Movie> parseMedia(String baseUrl, int page) {
         List<Movie> mediaList = new ArrayList<>();
         try {
-            Document doc = Jsoup.connect(baseUrl + "page/" + page + "/").get();
+            Document doc = Jsoup.connect(baseUrl + "page/" + (page + 1) + "/").get();
             Elements mediaElements = doc.select(".sect-cont.sect-items.clearfix .th-item");
 
             for (Element mediaElement : mediaElements) {
@@ -136,7 +176,7 @@ public class MainController {
 
                 if (!imageUrl.isEmpty()) {
                     String localImagePath = downloadAndConvertImage(imageUrl, "images/");
-                    mediaList.add(new Movie(title, year, rating, localImagePath));
+                    mediaList.add(new Movie (title, year, rating, localImagePath));
                 }
             }
         } catch (IOException | URISyntaxException e) {
@@ -171,29 +211,53 @@ public class MainController {
     return movies;
 }*/
 
+
+
     @FXML
     public void initialize() {
+
+        authController = new AuthController();  // Инициализируем AuthController
         // Назначаем все кнопки одной группе
+
+        favoritesButton.setOnAction(event -> {
+            loadFavorites();
+        });
+
         moviesButton.setOnAction(event -> {
+
+            /*scrollPaneMovie.setVisible(false);
+            scrollPaneMovie.setManaged(false);
+            filtersPane.setVisible(false);
+            filtersPane.setManaged(false);
+            searchHBox.setVisible(false);*/
+            showLoadingScreen();
             currentPage.set(1); // Устанавливаем номер текущей страницы на 1
             clearContent(); // Очищаем содержимое перед загрузкой нового
             loadMovies();
         });
 
         seriesButton.setOnAction(event -> {
+
+            showLoadingScreen();
             currentPage.set(1); // Устанавливаем номер текущей страницы на 1
             clearContent(); // Очищаем содержимое перед загрузкой нового
             loadSeries();
         });
 
         cartoonsButton.setOnAction(event -> {
+
+            showLoadingScreen();
             currentPage.set(1); // Устанавливаем номер текущей страницы на 1
             clearContent(); // Очищаем содержимое перед загрузкой нового
             loadCartoons();
         });
 
+        myAccountButton.setOnAction(event -> {
+
+        });
+
         scrollPaneMovie.vvalueProperty().addListener((obs, oldValue, newValue) -> {
-            if (newValue.doubleValue() >= scrollPaneMovie.getVmax() - 0.5) { // Threshold can be adjusted
+                if (newValue.doubleValue() >= scrollPaneMovie.getVmax() - 0.5) { // Threshold can be adjusted
                 if (!isLoading && currentPage.get() <= totalPages) {
                     switch (currentCategory) {
                         case "movies":
@@ -209,6 +273,8 @@ public class MainController {
                 }
             }
         });
+
+        loadMovies();
 
 
         // Найти все VBox'ы с классом "film-box"
@@ -226,8 +292,32 @@ public class MainController {
 
         // По умолчанию выбираем "Фильмы"
         moviesButton.setSelected(true);
+        createLoginPopup();
+
+
+        // Настройка жанров
+        genreChoiceBox.setItems(FXCollections.observableArrayList(
+                "Боевики", "Биографии", "Вестерн", "Военные", "Детективы", "Драмы",
+                "Исторические", "Комедии", "Криминал", "Мелодрамы", "Приключения",
+                "Семейные", "Триллеры", "Ужасы", "Спорт", "Фантастика", "Фэнтези"
+        ));
+
+        // Настройка годов
+        yearChoiceBox.setItems(FXCollections.observableArrayList(
+                "2024", "2023", "2022"
+        ));
+
+        // Настройка стран
+        countryChoiceBox.setItems(FXCollections.observableArrayList(
+                "Великобритания", "США", "Франция", "Германия"
+        ));
+
+        genreChoiceBox.setOnAction(this::onGenreSelected);
+        yearChoiceBox.setOnAction(this::onYearSelected);
+        countryChoiceBox.setOnAction(this::onCountrySelected);
 
     }
+
 
 
     public void handleTVMenu(ActionEvent actionEvent) {
@@ -242,22 +332,98 @@ public class MainController {
         });
     }
 
+    private void createLoginPopup() {
+        Popup popup = new Popup();
+        VBox popupContent = new VBox(10);
+        popupContent.setStyle("-fx-background-color: #283035; -fx-padding: 10;");
+
+        Label titleLabel = new Label("Авторизация / Регистрация");
+        titleLabel.setStyle("-fx-text-fill: white;");
+
+        // Используйте поля класса
+        emailField.setPromptText("Эл. почта");
+        passwordField.setPromptText("Пароль");
+
+        // Создание HBox для кнопок
+        HBox buttonBar = new HBox(10);  // Расстояние между кнопками
+        Button loginButton = new Button("Войти");
+        Button registerButton = new Button("Регистрация");
+        buttonBar.getChildren().addAll(loginButton, registerButton);
+        buttonBar.setAlignment(Pos.CENTER);  // Центрирование кнопок в HBox
+
+        // Настройка statusLabel
+        statusLabel.setStyle("-fx-text-fill: WHITE; -fx-font-size: 14px;");
+        statusLabel.setMaxWidth(Double.MAX_VALUE);
+        statusLabel.setAlignment(Pos.CENTER);  // Центрирование текста внутри Label
+
+        // Установка обработчиков
+        loginButton.setOnAction(e -> handleLogin());
+        registerButton.setOnAction(e -> handleRegistration());
+
+        popupContent.getChildren().addAll(titleLabel, emailField, passwordField, buttonBar, statusLabel);
+        popup.getContent().add(popupContent);
+
+        myAccountButton.setOnAction(event -> {
+            if (!popup.isShowing()) {
+                Node source = (Node) event.getSource();
+                Window theStage = source.getScene().getWindow();
+                double x = 6 + theStage.getX() + source.localToScene(source.getBoundsInLocal()).getMinX();
+                double y = theStage.getY() + source.localToScene(source.getBoundsInLocal()).getMinY();
+                popup.show(theStage, x, y + source.getBoundsInLocal().getHeight() + 40);
+            } else {
+                popup.hide();
+            }
+        });
+    }
+
 
 
     /* ChoiceBox ФИЛЬТРЫ*/
-    @FXML
     private void onGenreSelected(ActionEvent event) {
-        // Логика обработки выбора жанра
+        selectedGenre = genreChoiceBox.getValue();
+        applyFilters();
     }
 
-    @FXML
     private void onYearSelected(ActionEvent event) {
-        // Логика обработки выбора года
+        selectedYear = yearChoiceBox.getValue();
+        applyFilters();
     }
 
-    @FXML
     private void onCountrySelected(ActionEvent event) {
-        // Логика обработки выбора страны
+        selectedCountry = countryChoiceBox.getValue();
+        applyFilters();
+    }
+
+    private void applyFilters() {
+        String baseUrl = "https://lordfilm.ai/filmy/";
+        if (!selectedGenre.isEmpty()) {
+            baseUrl += selectedGenre.toLowerCase() + "/";
+        }
+        if (!selectedYear.isEmpty()) {
+            baseUrl += selectedYear + "/";
+        }
+        if (!selectedCountry.isEmpty()) {
+            baseUrl += selectedCountry.toLowerCase() + "/";
+        }
+
+        showLoadingScreen();
+        clearContent(); // Очищаем содержимое перед загрузкой нового
+        loadFilteredMovies(baseUrl);
+    }
+
+    private void loadFilteredMovies(String baseUrl) {
+        new Thread(() -> {
+            List<Movie> movies = parseMedia(baseUrl, 0);
+            Platform.runLater(() -> {
+                try {
+                    updateTilePaneContent(movies);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    closeLoadingScreen();
+                }
+            });
+        }).start();
     }
 
     @FXML
@@ -299,11 +465,142 @@ public class MainController {
         ratingLabel.setStyle("-fx-text-fill: yellow;"); // Желтый цвет только для рейтинга
         ratingLabel.setAlignment(Pos.CENTER);
 
+        CheckBox favoriteCheckBox = new CheckBox("В избранное");
+        favoriteCheckBox.setSelected(currentUser != null && isFavorite(movie.getTitle()));
+        favoriteCheckBox.setOnAction(event -> {
+            if (currentUser == null) {
+                System.out.println("Вы не авторизированы");
+                favoriteCheckBox.setSelected(false);
+                return;
+            }
+            toggleFavorite(movie);
+        });
+
         hBox.getChildren().addAll(yearLabel, ratingLabel);
-        vbox.getChildren().addAll(imageView, titleLabel, hBox);
+        vbox.getChildren().addAll(imageView, titleLabel, hBox, favoriteCheckBox);
 
         return vbox;
     }
+
+    public void toggleFavorite(Movie movie) {
+        if (isFavorite(movie.getTitle())) {
+            removeFavorite(movie.getTitle());
+        } else {
+            addFavorite(movie);
+        }
+    }
+
+
+    public void addFavorite(Movie movie) {
+        if (currentUser == null) {
+            System.out.println("Вы не авторизированы");
+            return;
+        }
+        String sql = "INSERT INTO favorites (user_id, title, year, rating, image_path) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, currentUser.getId());
+            pstmt.setString(2, movie.getTitle());
+            pstmt.setString(3, movie.getYear());
+            pstmt.setString(4, movie.getRating());
+            pstmt.setString(5, movie.getImagePath());
+            pstmt.executeUpdate();
+            System.out.println("Фильм добавлен в избранное");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+    public void removeFavorite(String movieTitle) {
+        if (currentUser == null) {
+            System.out.println("Вы не авторизированы");
+            return;
+        }
+        String sql = "DELETE FROM favorites WHERE user_id = ? AND title = ?";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, currentUser.getId());
+            pstmt.setString(2, movieTitle);
+            pstmt.executeUpdate();
+            System.out.println("Фильм удален из избранного");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void loadFavorites() {
+        if (currentUser == null) {
+            System.out.println("Вы не авторизированы");
+            return;
+        }
+        String sql = "SELECT title, year, rating, image_path FROM favorites WHERE user_id = ?";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, currentUser.getId());
+            ResultSet rs = pstmt.executeQuery();
+            List<Movie> favoriteMovies = new ArrayList<>();
+            while (rs.next()) {
+                String title = rs.getString("title");
+                String year = rs.getString("year");
+                String rating = rs.getString("rating");
+                String imagePath = rs.getString("image_path");
+                favoriteMovies.add(new Movie(title, year, rating, imagePath));
+            }
+            Platform.runLater(() -> {
+                try {
+                    clearContent(); // Очистить предыдущий контент
+                    updateTilePaneContent(favoriteMovies); // Отобразить избранные фильмы
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+
+    private User currentUser;
+    public void removeFavorite(int movieId) {
+        String sql = "DELETE FROM favorites WHERE user_id = ? AND movie_id = ?";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, currentUser.getId());
+            pstmt.setInt(2, movieId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public boolean isFavorite(String movieTitle) {
+        if (currentUser == null) {
+            System.out.println("Вы не авторизированы");
+            return false;
+        }
+        String sql = "SELECT 1 FROM favorites WHERE user_id = ? AND title = ?";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, currentUser.getId());
+            pstmt.setString(2, movieTitle);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next(); // Возвращает true, если запись найдена
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
+
+
+
+    // Метод для установки текущего пользователя после успешной авторизации
+    public void setCurrentUser(int id, String username) {
+        this.currentUser = new User(id, username);
+    }
+
 
     public void clearContent() {
         if (!moviesTilePane.getChildren().isEmpty()) {
@@ -328,6 +625,7 @@ public class MainController {
                     e.printStackTrace();
                 } finally {
                     isLoading = false; // Сбрасываем состояние загрузки
+                    closeLoadingScreen();
                 }
             });
         }).start();
@@ -349,6 +647,7 @@ public class MainController {
                     e.printStackTrace();
                 } finally {
                     isLoading = false;
+                    closeLoadingScreen();
                 }
             });
         }).start();
@@ -370,9 +669,68 @@ public class MainController {
                     e.printStackTrace();
                 } finally {
                     isLoading = false;
+                    closeLoadingScreen();
                 }
             });
         }).start();
     }
+
+    private void showLoadingScreen(){
+        try{
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mdkefir/filmlibrary/fxml/main_download.fxml"));
+            Parent root = loader.load();
+
+            //Создание новой формы
+            loadingStage = new Stage();
+            loadingStage.initStyle(StageStyle.UNDECORATED);
+            loadingStage.setScene(new Scene(root));
+            loadingStage.initModality(Modality.APPLICATION_MODAL); // делаем окно модальным
+            loadingStage.setTitle("Загрузка");
+            loadingStage.show();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeLoadingScreen(){
+        if (loadingStage != null){
+            loadingStage.close();
+        }
+    }
+
+
+    // Пример метода, который вызывается при нажатии кнопки "Регистрация"
+
+    private void handleRegistration() {
+        String username = emailField.getText();  // Используйте email в качестве логина
+        String password = passwordField.getText();
+        if (authController.registerUser(username, password)) {
+            statusLabel.setText("Регистрация успешна");
+        } else {
+            statusLabel.setText("Ошибка регистрации");
+        }
+    }
+
+
+    private void handleLogin() {
+        String username = emailField.getText();
+        String password = passwordField.getText();
+        if (authController.loginUser(username, password)) {
+            System.out.println("Авторизация успешна");
+
+            // Получение идентификатора пользователя
+            int userId = authController.getUserId(username);
+            if (userId != -1) {
+                setCurrentUser(userId, username);
+                statusLabel.setText("Авторизация успешна");
+            } else {
+                statusLabel.setText("Ошибка: не удалось получить данные пользователя.");
+            }
+        } else {
+            System.out.println("Ошибка авторизации");
+            statusLabel.setText("Ошибка авторизации");
+        }
+    }
+
 
 }

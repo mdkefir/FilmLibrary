@@ -8,6 +8,7 @@ module com.mdkefir.filmlibrary {
     requires org.kordamp.bootstrapfx.core;
     requires org.jsoup;
     requires java.desktop;
+    requires java.sql;
 
     opens com.mdkefir.filmlibrary.controllers to javafx.fxml;
     exports com.mdkefir.filmlibrary;
