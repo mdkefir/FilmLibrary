@@ -21,19 +21,29 @@ public class Database {
             if (conn != null) {
                 Statement stmt = conn.createStatement();
                 // Создание таблицы пользователей
+                /*stmt.execute("DROP TABLE users");*/
                 stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "username TEXT NOT NULL UNIQUE," +
-                        "password TEXT NOT NULL);");
-                stmt.execute("DROP TABLE favorites");
+                        "password TEXT NOT NULL," +
+                        "secret_code TEXT);");
+
+                /*stmt.execute("DROP TABLE favorites");*/
                 // Создание таблицы избранных фильмов
                 stmt.execute("CREATE TABLE IF NOT EXISTS favorites (" +
                         "user_id INTEGER," +
-                        "title TEXT NOT NULL," +
+                        "title TEXT," +
                         "year TEXT," +
                         "rating TEXT," +
                         "image_path TEXT," +
                         "FOREIGN KEY(user_id) REFERENCES users(id));");
+
+                // Создание таблицы друзей
+                stmt.execute("CREATE TABLE IF NOT EXISTS friends (" +
+                        "user_id INTEGER," +
+                        "friend_id INTEGER," +
+                        "FOREIGN KEY(user_id) REFERENCES users(id)," +
+                        "FOREIGN KEY(friend_id) REFERENCES users(id));");
 
                 System.out.println("Таблицы созданы");
             }

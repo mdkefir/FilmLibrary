@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuthController {
     private Database db;
@@ -56,4 +58,49 @@ public class AuthController {
         }
         return -1;  // Возвращаем -1, если пользователь не найден
     }
+
+    public boolean addFriend(int userId, String friendName, String secretCode) {
+        String sql = "INSERT INTO friends (user_id, friend_id) VALUES (?, ?)";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, friendName);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Ошибка добавления друга: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean deleteFriend(int userId, String friendName) {
+        String sql = "DELETE FROM friends WHERE user_id = ? AND friend_name = ?";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, friendName);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Ошибка удаления друга: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<String> getFriends(int userId) {
+        List<String> friends = new ArrayList<>();
+        String sql = "SELECT friend_id FROM friends WHERE user_id = ?";
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                friends.add(rs.getString("friend_name"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Ошибка получения списка друзей: " + e.getMessage());
+        }
+        return friends;
+    }
+
 }

@@ -15,10 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -37,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import javafx.scene.shape.Rectangle;
 import javafx.stage.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -63,10 +62,9 @@ public class MainController {
     @FXML
     private HBox searchHBox;
 
+
     @FXML
     private AnchorPane authPane; // Панель авторизации/регистрации
-    @FXML
-    private AnchorPane filtersPane; // Панель с фильтрами
 
     @FXML
     private Label filmLabel;
@@ -109,15 +107,57 @@ public class MainController {
     private ToggleGroup categoryToggleGroup = new ToggleGroup();
 
     @FXML
-    private ChoiceBox<String> genreChoiceBox;
-    @FXML
-    private ChoiceBox<String> yearChoiceBox;
-    @FXML
-    private ChoiceBox<String> countryChoiceBox;
+    private AnchorPane friendsPane;
 
-    private String selectedGenre = "";
-    private String selectedYear = "";
-    private String selectedCountry = "";
+    @FXML
+    private AnchorPane filtersPane;
+
+    @FXML
+    private CheckBox showAccessCheckBox;
+
+    @FXML
+    private ComboBox<String> favoriteFriendComboBox;
+
+    @FXML
+    private Button acceptFavoriteFriendButton;
+
+    @FXML
+    private Label favoriteText1;
+
+    @FXML
+    private Label favoriteText2;
+
+    @FXML
+    private ToggleButton friendsButton;
+
+    @FXML
+    private Rectangle friendRectangle;
+
+    @FXML
+    private Label friendStatusLabel;
+
+    @FXML
+    private TextField nameFriend;
+    @FXML
+    private TextField secretCodeFriend;
+    @FXML
+    private ComboBox<String> friendChoose;
+    @FXML
+    private TextField fieldSecretWord;
+
+    @FXML
+    private Button friendAdd;
+    @FXML
+    private Button friendDelete;
+    @FXML
+    private Button applySecretWordButton;
+
+    private int currentUserId;
+
+    public void setCurrentUserId(int userId) {
+        this.currentUserId = userId;
+        loadFriends();
+    }
 
 
     private AtomicInteger currentPage = new AtomicInteger(1);
@@ -215,12 +255,26 @@ public class MainController {
 
     @FXML
     public void initialize() {
-
-        authController = new AuthController();  // Инициализируем AuthController
+        authController = new AuthController();
         // Назначаем все кнопки одной группе
+        hideAllExtraPanes();
+
+        friendsButton.setOnAction(event -> {
+            if (friendsButton.isSelected()) {
+                hideAllExtraPanes();
+                showFriendsPane();
+            } else {
+                hideAllExtraPanes();
+            }
+        });
 
         favoritesButton.setOnAction(event -> {
-            loadFavorites();
+            if (favoritesButton.isSelected()) {
+                showFavoritePane();
+                loadFavorites();
+            } else {
+                hideAllExtraPanes();
+            }
         });
 
         moviesButton.setOnAction(event -> {
@@ -234,6 +288,7 @@ public class MainController {
             currentPage.set(1); // Устанавливаем номер текущей страницы на 1
             clearContent(); // Очищаем содержимое перед загрузкой нового
             loadMovies();
+            hideAllExtraPanes();
         });
 
         seriesButton.setOnAction(event -> {
@@ -242,6 +297,7 @@ public class MainController {
             currentPage.set(1); // Устанавливаем номер текущей страницы на 1
             clearContent(); // Очищаем содержимое перед загрузкой нового
             loadSeries();
+            hideAllExtraPanes();
         });
 
         cartoonsButton.setOnAction(event -> {
@@ -250,10 +306,22 @@ public class MainController {
             currentPage.set(1); // Устанавливаем номер текущей страницы на 1
             clearContent(); // Очищаем содержимое перед загрузкой нового
             loadCartoons();
+            hideAllExtraPanes();
         });
 
         myAccountButton.setOnAction(event -> {
 
+        });
+
+        friendAdd.setOnAction(event -> {
+            handleAddFriend();
+        });
+
+        friendDelete.setOnAction(event -> {
+            handleDeleteFriend();
+        });
+        applySecretWordButton.setOnAction(event -> {
+            handleApplySecretWord();
         });
 
         scrollPaneMovie.vvalueProperty().addListener((obs, oldValue, newValue) -> {
@@ -293,31 +361,24 @@ public class MainController {
         // По умолчанию выбираем "Фильмы"
         moviesButton.setSelected(true);
         createLoginPopup();
-
-
-        // Настройка жанров
-        genreChoiceBox.setItems(FXCollections.observableArrayList(
-                "Боевики", "Биографии", "Вестерн", "Военные", "Детективы", "Драмы",
-                "Исторические", "Комедии", "Криминал", "Мелодрамы", "Приключения",
-                "Семейные", "Триллеры", "Ужасы", "Спорт", "Фантастика", "Фэнтези"
-        ));
-
-        // Настройка годов
-        yearChoiceBox.setItems(FXCollections.observableArrayList(
-                "2024", "2023", "2022"
-        ));
-
-        // Настройка стран
-        countryChoiceBox.setItems(FXCollections.observableArrayList(
-                "Великобритания", "США", "Франция", "Германия"
-        ));
-
-        genreChoiceBox.setOnAction(this::onGenreSelected);
-        yearChoiceBox.setOnAction(this::onYearSelected);
-        countryChoiceBox.setOnAction(this::onCountrySelected);
-
     }
 
+    private void hideAllExtraPanes() {
+        friendsPane.setVisible(false);
+        friendsPane.setManaged(false);
+        filtersPane.setVisible(false);
+        filtersPane.setManaged(false);
+    }
+
+    private void showFriendsPane() {
+        friendsPane.setVisible(true);
+        friendsPane.setManaged(true);
+    }
+
+    private void showFavoritePane() {
+        filtersPane.setVisible(true);
+        filtersPane.setManaged(true);
+    }
 
 
     public void handleTVMenu(ActionEvent actionEvent) {
@@ -356,6 +417,11 @@ public class MainController {
         statusLabel.setMaxWidth(Double.MAX_VALUE);
         statusLabel.setAlignment(Pos.CENTER);  // Центрирование текста внутри Label
 
+        // Настройка statusLabel
+        friendStatusLabel.setStyle("-fx-text-fill: WHITE; -fx-font-size: 14px;");
+        friendStatusLabel.setMaxWidth(Double.MAX_VALUE);
+        friendStatusLabel.setAlignment(Pos.CENTER);  // Центрирование текста внутри Label
+
         // Установка обработчиков
         loginButton.setOnAction(e -> handleLogin());
         registerButton.setOnAction(e -> handleRegistration());
@@ -376,60 +442,6 @@ public class MainController {
         });
     }
 
-
-
-    /* ChoiceBox ФИЛЬТРЫ*/
-    private void onGenreSelected(ActionEvent event) {
-        selectedGenre = genreChoiceBox.getValue();
-        applyFilters();
-    }
-
-    private void onYearSelected(ActionEvent event) {
-        selectedYear = yearChoiceBox.getValue();
-        applyFilters();
-    }
-
-    private void onCountrySelected(ActionEvent event) {
-        selectedCountry = countryChoiceBox.getValue();
-        applyFilters();
-    }
-
-    private void applyFilters() {
-        String baseUrl = "https://lordfilm.ai/filmy/";
-        if (!selectedGenre.isEmpty()) {
-            baseUrl += selectedGenre.toLowerCase() + "/";
-        }
-        if (!selectedYear.isEmpty()) {
-            baseUrl += selectedYear + "/";
-        }
-        if (!selectedCountry.isEmpty()) {
-            baseUrl += selectedCountry.toLowerCase() + "/";
-        }
-
-        showLoadingScreen();
-        clearContent(); // Очищаем содержимое перед загрузкой нового
-        loadFilteredMovies(baseUrl);
-    }
-
-    private void loadFilteredMovies(String baseUrl) {
-        new Thread(() -> {
-            List<Movie> movies = parseMedia(baseUrl, 0);
-            Platform.runLater(() -> {
-                try {
-                    updateTilePaneContent(movies);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    closeLoadingScreen();
-                }
-            });
-        }).start();
-    }
-
-    @FXML
-    private void onRatingSelected(ActionEvent event) {
-        // Логика обработки выбора рейтинга
-    }
     // Этот метод теперь принимает List<Movie> и обновляет moviesTilePane
     public void updateTilePaneContent(List<Movie> movies) throws FileNotFoundException, URISyntaxException {
         for (Movie movie : movies) {
@@ -712,23 +724,100 @@ public class MainController {
     }
 
 
+    @FXML
     private void handleLogin() {
         String username = emailField.getText();
         String password = passwordField.getText();
         if (authController.loginUser(username, password)) {
-            System.out.println("Авторизация успешна");
-
-            // Получение идентификатора пользователя
             int userId = authController.getUserId(username);
-            if (userId != -1) {
-                setCurrentUser(userId, username);
-                statusLabel.setText("Авторизация успешна");
+            currentUser = new User(userId, username);  // Создание текущего пользователя
+            statusLabel.setText("Авторизация успешна");
+        } else {
+            statusLabel.setText("Ошибка авторизации");
+        }
+    }
+
+
+
+    @FXML
+    private void handleAddFriend() {
+        String friendName = nameFriend.getText();
+        String secretCode = secretCodeFriend.getText();
+        if (currentUser != null && friendName != null && !friendName.isEmpty() && secretCode != null && !secretCode.isEmpty()) {
+            if (authController.addFriend(currentUser.getId(), friendName, secretCode)) {
+                friendStatusLabel.setText("Друг добавлен");
+                updateFriendList();
             } else {
-                statusLabel.setText("Ошибка: не удалось получить данные пользователя.");
+                friendStatusLabel.setText("Ошибка добавления друга");
             }
         } else {
-            System.out.println("Ошибка авторизации");
-            statusLabel.setText("Ошибка авторизации");
+            friendStatusLabel.setText("Необходимо заполнить все поля");
+        }
+    }
+
+    @FXML
+    private void handleDeleteFriend() {
+        String selectedFriend = friendChoose.getValue();
+        if (currentUser != null && selectedFriend != null) {
+            if (authController.deleteFriend(currentUser.getId(), selectedFriend)) {
+                friendStatusLabel.setText("Друг удален");
+                updateFriendList();
+            } else {
+                friendStatusLabel.setText("Ошибка удаления друга");
+            }
+        } else {
+            friendStatusLabel.setText("Выберите друга для удаления");
+        }
+    }
+
+    private void updateFriendList() {
+        if (currentUser != null) {
+            List<String> friends = authController.getFriends(currentUser.getId());
+            friendChoose.getItems().setAll(friends);
+        }
+    }
+
+
+    @FXML
+    private void handleApplySecretWord() {
+        String secretWord = fieldSecretWord.getText();
+
+        if (secretWord.isEmpty()) {
+            friendStatusLabel.setText("Введите секретное слово");
+            return;
+        }
+
+        try (Connection conn = Database.connect()) {
+            // Обновить секретное слово текущего пользователя
+            String updateSecretWordSQL = "UPDATE users SET secret_code = ? WHERE id = ?";
+            PreparedStatement pstmt = conn.prepareStatement(updateSecretWordSQL);
+            pstmt.setString(1, secretWord);
+            pstmt.setInt(2, currentUser.getId());
+            pstmt.executeUpdate();
+
+            friendStatusLabel.setText("Секретное слово обновлено");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            friendStatusLabel.setText("Ошибка обновления секретного слова");
+        }
+    }
+
+    private void loadFriends() {
+        friendChoose.getItems().clear();
+
+        try (Connection conn = Database.connect()) {
+            // Получить список друзей текущего пользователя
+            String loadFriendsSQL = "SELECT u.username FROM friends f JOIN users u ON f.friend_id = u.id WHERE f.user_id = ?";
+            PreparedStatement pstmt = conn.prepareStatement(loadFriendsSQL);
+            pstmt.setInt(1, currentUserId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                friendChoose.getItems().add(rs.getString("username"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            friendStatusLabel.setText("Ошибка загрузки друзей");
         }
     }
 

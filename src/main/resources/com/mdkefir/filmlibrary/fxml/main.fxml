@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
@@ -23,66 +17,28 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Polygon?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
 <VBox fx:id="mainVBox" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="960.0" style="-fx-background-color: #151a1e;" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdkefir.filmlibrary.controllers.MainController">
     <children>
-        <!--<MenuBar style="-fx-background-color: #151a1e;" VBox.vgrow="NEVER">
-            <menus>
-                <Menu mnemonicParsing="false" text="Файл">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Новый файл" />
-                        <MenuItem mnemonicParsing="false" text="Открыть…" />
-                        <Menu mnemonicParsing="false" text="Открыть недавние" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Закрыть" />
-                        <MenuItem mnemonicParsing="false" text="Сохранить" />
-                        <MenuItem mnemonicParsing="false" text="Сохранить как…" />
-                        <MenuItem mnemonicParsing="false" text="Вернуться" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Настройки" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Выход" />
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Изменить">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Отменить" />
-                        <MenuItem mnemonicParsing="false" text="Вернуться" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Вырезать" />
-                        <MenuItem mnemonicParsing="false" text="Копировать" />
-                        <MenuItem mnemonicParsing="false" text="Вставить" />
-                        <MenuItem mnemonicParsing="false" text="Удалить" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Выделить всё" />
-                        <MenuItem mnemonicParsing="false" text="Отменить выделение" />
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Помощь">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="О программе" />
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>-->
         <SplitPane dividerPositions="0.5" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" style="-fx-background-color: #151a1e;" VBox.vgrow="ALWAYS">
             <items>
                 <AnchorPane maxHeight="-Infinity" prefHeight="51.0" prefWidth="900.0" style="-fx-background-color: #151a1e;" SplitPane.resizableWithParent="false">
                     <children>
-                        <!-- HBox как контейнер для панели поиска -->
                         <HBox fx:id="searchHBox" layoutX="200.0" prefHeight="51.0" prefWidth="750.0" spacing="5.0" style="-fx-background-color: #283035;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="200.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <children>
-                                <!-- Растяжимое текстовое поле -->
                                 <TextField prefHeight="32.0" prefWidth="639.0" promptText="Фильм, сериал и т.п." styleClass="no_borders" HBox.hgrow="ALWAYS">
                                     <HBox.margin>
                                         <Insets left="10.0" right="-6.0" top="10.0" />
-                                    </HBox.margin></TextField>
-                                <!-- Кнопка, которая не меняет размер -->
+                                    </HBox.margin>
+                                </TextField>
                                 <Button mnemonicParsing="false" prefHeight="32.0" prefWidth="98.0" styleClass="no_borders" text="Поиск" textFill="WHITE">
                                     <HBox.margin>
                                         <Insets left="-2.0" right="10.0" top="10.0" />
-                                    </HBox.margin></Button>
+                                    </HBox.margin>
+                                </Button>
                             </children>
                         </HBox>
                         <ImageView fitHeight="51.0" fitWidth="125.0" layoutX="14.0" layoutY="1.0" pickOnBounds="true" preserveRatio="true">
@@ -104,128 +60,97 @@
                                 <ToggleButton fx:id="moviesButton" layoutX="1.0" layoutY="44.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Фильмы" textFill="WHITE" AnchorPane.leftAnchor="1.0">
                                     <toggleGroup>
                                         <ToggleGroup fx:id="categoryToggleGroup" />
-                                    </toggleGroup></ToggleButton>
+                                    </toggleGroup>
+                                </ToggleButton>
                                 <ToggleButton fx:id="seriesButton" layoutX="1.0" layoutY="82.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Сериалы" textFill="WHITE" toggleGroup="$categoryToggleGroup" AnchorPane.leftAnchor="1.0" />
                                 <ToggleButton fx:id="cartoonsButton" layoutX="1.0" layoutY="120.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Мультсериалы" textFill="WHITE" toggleGroup="$categoryToggleGroup" AnchorPane.leftAnchor="1.0" />
-                        <ToggleButton fx:id="friendsButton" layoutX="1.0" layoutY="399.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Друзья" textFill="WHITE" AnchorPane.bottomAnchor="86.0">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="categoryToggleGroup1" />
-                           </toggleGroup>
-                        </ToggleButton>
-                        <ToggleButton fx:id="favoritesButton" layoutX="1.0" layoutY="437.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Избранное" textFill="WHITE" AnchorPane.bottomAnchor="50.0">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="categoryToggleGroup1" />
-                           </toggleGroup>
-                        </ToggleButton>
-                        <ToggleButton fx:id="myAccountButton" layoutX="1.0" layoutY="475.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Мой аккаунт" textFill="WHITE" AnchorPane.bottomAnchor="14.0">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="categoryToggleGroup1" />
-                           </toggleGroup>
-                        </ToggleButton>
+                                <ToggleButton fx:id="friendsButton" layoutX="1.0" layoutY="399.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Друзья" textFill="WHITE" AnchorPane.bottomAnchor="86.0">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="categoryToggleGroup1" />
+                                    </toggleGroup>
+                                </ToggleButton>
+                                <ToggleButton fx:id="favoritesButton" layoutX="1.0" layoutY="437.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Избранное" textFill="WHITE" AnchorPane.bottomAnchor="50.0">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="categoryToggleGroup1" />
+                                    </toggleGroup>
+                                </ToggleButton>
+                                <ToggleButton fx:id="myAccountButton" layoutX="1.0" layoutY="475.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="200.0" styleClass="togglebutton_category" text="Мой аккаунт" textFill="WHITE" AnchorPane.bottomAnchor="14.0">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="categoryToggleGroup1" />
+                                    </toggleGroup>
+                                </ToggleButton>
+                                <AnchorPane fx:id="friendsPane">
+                                    <children>
+                                        <Rectangle fx:id="friendRectangle" arcHeight="5.0" arcWidth="5.0" fill="#1e252b" height="234.0" layoutX="15.0" layoutY="179.0" stroke="#9c9c9c00" strokeType="INSIDE" width="173.0" />
+                                        <Polygon fx:id="friendpolygon" fill="#1e252b" layoutX="101.0" layoutY="373.0" points="-50.0, 40.0, 50.0, 40.0, 0.0, 61.0" stroke="TRANSPARENT" strokeType="INSIDE" />
+                                        <Label fx:id="friendText1" alignment="CENTER" layoutX="21.0" layoutY="186.0" style="&#10;" styleClass="label-gray" text="Добавить друга" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                            <font>
+                                                <Font size="18.0" fx:id="x1211" />
+                                            </font>
+                                        </Label>
+                                        <TextField fx:id="nameFriend" layoutX="21.0" layoutY="221.0" prefHeight="23.0" prefWidth="157.0" styleClass="no_borders" />
+                                        <Button fx:id="friendAdd" layoutX="23.0" layoutY="283.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="157.0" text="Добавить" />
+                                        <TextField fx:id="secretCodeFriend" layoutX="23.0" layoutY="252.0" prefHeight="23.0" prefWidth="157.0" styleClass="no_borders" />
+                                        <Label fx:id="friendText2" alignment="CENTER" layoutX="23.0" layoutY="310.0" style="&#10;" styleClass="label-gray" text="Удалить друга" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                            <font>
+                                                <Font size="18.0" fx:id="x12111" />
+                                            </font>
+                                        </Label>
+                                        <ComboBox fx:id="friendChoose" layoutX="25.0" layoutY="345.0" prefWidth="150.0" promptText="Выберите друга" styleClass="button" />
+                                        <Button fx:id="friendDelete" layoutX="23.0" layoutY="375.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="157.0" text="Удалить" />
+                                        <Label fx:id="friendStatusLabel" alignment="CENTER" layoutX="34.0" layoutY="157.0" style="&#10;" styleClass="label-gray" text="ЧЛЕН ВСТАЛ" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                            <font>
+                                                <Font size="14.0" fx:id="x1212" />
+                                            </font>
+                                        </Label>
+                                    </children>
+                                </AnchorPane>
                             </children>
                             <opaqueInsets>
                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                             </opaqueInsets>
                         </AnchorPane>
                         <StackPane fx:id="contentStackPane">
-                             <SplitPane dividerPositions="0.5" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="160.0" style="-fx-background-color: #1e252b;">
+                            <SplitPane dividerPositions="0.5" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="160.0" style="-fx-background-color: #1e252b;">
                                 <items>
-                                   <ScrollPane fx:id="scrollPaneMovie" fitToHeight="true" fitToWidth="true" style="-fx-background-color: #1e252b;">
-                                      <content>
-                                         <TilePane fx:id="moviesTilePane" alignment="TOP_LEFT" hgap="10" prefColumns="3" prefRows="3" style="-fx-background-color: #1e252b;" vgap="10">
-                                            <padding>
-                                               <Insets bottom="0" left="15" right="5" top="0" />
-                                            </padding>
-                                         </TilePane>
-                                      </content>
-                                   </ScrollPane>
-                                   <AnchorPane fx:id="filtersPane" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="524.0" prefWidth="200.0" style="-fx-background-color: #1e252b;">
-                                      <children>
-                                         <Label alignment="CENTER" layoutX="13.0" layoutY="17.0" style="&#10;" styleClass="label-gray" text="Фильтры" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
-                                            <font>
-                                               <Font name="Montserrat SemiBold" size="16.0" fx:id="x11" />
-                                            </font>
-                                         </Label>
-                                         <ChoiceBox fx:id="genreChoiceBox" layoutX="92.0" layoutY="54.0" prefHeight="25.0" prefWidth="101.0" style="-fx-background-color: #1e252b;">
-                                            <items>
-                                               <FXCollections fx:factory="observableArrayList">
-                                                  <String fx:value="Комедия" />
-                                                  <String fx:value="Драма" />
-                                                  <String fx:value="Фантастика" />
-                                               </FXCollections>
-                                            </items>
-                                         </ChoiceBox>
-                                         <Label alignment="CENTER" layoutX="13.0" layoutY="53.0" style="&#10;" styleClass="label-gray" text="Жанр" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
-                                            <font>
-                                               <Font size="18.0" fx:id="x121" />
-                                            </font>
-                                         </Label>
-                                         <ChoiceBox fx:id="yearChoiceBox" layoutX="120.0" layoutY="90.0" prefHeight="25.0" prefWidth="73.0" style="-fx-background-color: #1e252b;">
-                                            <items>
-                                               <FXCollections fx:factory="observableArrayList">
-                                                  <String fx:value="2024" />
-                                                  <String fx:value="2023" />
-                                                  <String fx:value="2022" />
-                                               </FXCollections>
-                                            </items>
-                                         </ChoiceBox>
-                                         <Label alignment="CENTER" layoutX="13.0" layoutY="86.0" style="&#10;" styleClass="label-gray" text="Год выпуска" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
-                                            <font>
-                                               <Font size="18.0" fx:id="x1211" />
-                                            </font>
-                                         </Label>
-                                         <ChoiceBox fx:id="countryChoiceBox" layoutX="92.0" layoutY="124.0" prefHeight="25.0" prefWidth="101.0" style="-fx-background-color: #1e252b;">
-                                            <items>
-                                               <FXCollections fx:factory="observableArrayList">
-                                                  <String fx:value="США" />
-                                                  <String fx:value="Великобритания" />
-                                                  <String fx:value="Франция" />
-                                                  <String fx:value="Италия" />
-                                               </FXCollections>
-                                            </items>
-                                         </ChoiceBox>
-                                         <Label alignment="CENTER" layoutX="13.0" layoutY="120.0" style="&#10;" styleClass="label-gray" text="Страна" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
-                                            <font>
-                                               <Font size="18.0" fx:id="x1221" />
-                                            </font>
-                                         </Label>
-                                         <ChoiceBox fx:id="ratingChoiceBox" layoutX="92.0" layoutY="158.0" prefHeight="25.0" prefWidth="101.0" style="-fx-background-color: #1e252b;">
-                                            <items>
-                                               <FXCollections fx:factory="observableArrayList">
-                                                  <String fx:value="PG-13" />
-                                                  <String fx:value="R" />
-                                                  <String fx:value="NC-17" />
-                                               </FXCollections>
-                                            </items>
-                                         </ChoiceBox>
-                                         <Label alignment="CENTER" layoutX="13.0" layoutY="154.0" style="&#10;" styleClass="label-gray" text="Рейтинг" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
-                                            <font>
-                                               <Font size="18.0" fx:id="x1231" />
-                                            </font>
-                                         </Label>
-                                         <Button layoutX="13.0" layoutY="189.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="185.0" styleClass="button-filters" text="Применить" textFill="#b1b3b4" />
-                                      </children>
-                                      <opaqueInsets>
-                                         <Insets />
-                                      </opaqueInsets>
-                                   </AnchorPane>
-                                </items>
-                             </SplitPane>
-                            <!--<AnchorPane fx:id="authPane" managed="false" style="-fx-background-color: #2c3e50;" visible="false">
-                                <children>
-                                    <VBox alignment="CENTER" spacing="20" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+                                    <ScrollPane fx:id="scrollPaneMovie" fitToHeight="true" fitToWidth="true" style="-fx-background-color: #1e252b;">
+                                        <content>
+                                            <TilePane fx:id="moviesTilePane" alignment="TOP_LEFT" hgap="10" prefColumns="3" prefRows="3" style="-fx-background-color: #1e252b;" vgap="10">
+                                                <padding>
+                                                    <Insets bottom="0" left="15" right="5" top="0" />
+                                                </padding>
+                                            </TilePane>
+                                        </content>
+                                    </ScrollPane>
+                                    <AnchorPane fx:id="filtersPane" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="524.0" prefWidth="200.0" style="-fx-background-color: #1e252b;">
                                         <children>
-                                            <Label style="-fx-text-fill: white;" text="Авторизация / Регистрация" />
-                                            <TextField fx:id="usernameField" promptText="Имя пользователя" />
-                                            <PasswordField fx:id="passwordField" promptText="Пароль" />
-                                            <Button fx:id="loginButton" text="Войти" onAction="#handleLogin" />
-                                            <Button fx:id="registerButton" text="Регистрация" onAction="#handleRegistration" />
-                                            <Label fx:id="statusLabel" text="" style="-fx-text-fill: red;" />
-                                            &lt;!&ndash; Дополнительные элементы &ndash;&gt;
+                                            <Label fx:id="favoriteText1" alignment="CENTER" layoutX="13.0" layoutY="17.0" style="&#10;" styleClass="label-gray" text="Расш. настройки" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                                <font>
+                                                    <Font name="Montserrat SemiBold" size="14.0" fx:id="x11" />
+                                                </font>
+                                            </Label>
+                                            <Label fx:id="favoriteText2" alignment="CENTER" layoutX="14.0" layoutY="78.0" style="&#10;" styleClass="label-gray" text="Избранные друзей" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                                <font>
+                                                    <Font size="14.0" fx:id="x121" />
+                                                </font>
+                                            </Label>
+                                            <Button fx:id="acceptFavoriteFriendButton" layoutX="15.0" layoutY="138.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="173.0" styleClass="button-filters" text="Применить" textFill="#b1b3b4" />
+                                            <CheckBox fx:id="showAccessCheckBox" layoutX="15.0" layoutY="46.0" mnemonicParsing="false" text="Показать друзьям?" />
+                                            <ComboBox fx:id="favoriteFriendComboBox" layoutX="20.0" layoutY="108.0" prefWidth="150.0" promptText="Выберите друга" styleClass="button" />
+                                            <TextField fx:id="fieldSecretWord" layoutX="23.0" layoutY="201.0" prefHeight="23.0" prefWidth="157.0" styleClass="no_borders" />
+                                            <Label fx:id="favoriteText21" alignment="CENTER" layoutX="16.0" layoutY="173.0" style="&#10;" styleClass="label-gray" text="Секретное слово" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                                <font>
+                                                    <Font size="14.0" fx:id="x1213" />
+                                                </font>
+                                            </Label>
+                                            <Button fx:id="applySecretWordButton" layoutX="15.0" layoutY="224.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="173.0" styleClass="button-filters" text="Применить" textFill="#b1b3b4" />
                                         </children>
-                                    </VBox>
-                                </children>
-                            </AnchorPane>-->
+                                        <opaqueInsets>
+                                            <Insets />
+                                        </opaqueInsets>
+                                    </AnchorPane>
+                                </items>
+                            </SplitPane>
                         </StackPane>
                     </items>
                 </SplitPane>
