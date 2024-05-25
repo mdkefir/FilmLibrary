@@ -12,5 +12,6 @@ module com.mdkefir.filmlibrary {
 
     opens com.mdkefir.filmlibrary.controllers to javafx.fxml;
     exports com.mdkefir.filmlibrary;
+    exports com.mdkefir.filmlibrary.controllers;
 
 }

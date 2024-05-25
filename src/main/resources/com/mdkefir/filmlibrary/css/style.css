@@ -65,6 +65,36 @@
     -fx-background-color: #2d3841; /* Красный фон для активной кнопки */
     -fx-text-fill: #ffffff; /* Белый цвет текста для активной кнопки */
 }
+.togglebutton_account{
+    -fx-background-color: #1f272d;
+}
+.togglebutton_account:focused, .togglebutton_account:pressed .togglebutton_account:selected {
+    -fx-background-color: #2d3841; /* Красный фон для активной кнопки */
+    -fx-text-fill: #ffffff; /* Белый цвет текста для активной кнопки */
+}
+
+
+.enter_account_label{
+    -fx-font-family: "Montserrat SemiBold", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500; /* Это значение может не поддерживаться напрямую, поэтому вам может понадобиться использовать более тяжелый шрифт */
+    -fx-line-height: 18px; /* Это значение может быть не применимо в JavaFX CSS */
+
+    /* Настройка отображения */
+    -fx-alignment: center-left;
+    -fx-text-fill: #b1b3b4; /* Начальный цвет текста*/
+}
+
+.my_account_label{
+    -fx-font-family: "Montserrat SemiBold", sans-serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: 500; /* Это значение может не поддерживаться напрямую, поэтому вам может понадобиться использовать более тяжелый шрифт */
+    -fx-line-height: 18px; /* Это значение может быть не применимо в JavaFX CSS */
+
+    /* Настройка отображения */
+    -fx-alignment: center-left;
+    -fx-text-fill: #b1b3b4; /* Начальный цвет текста*/
+}
 
 .button{
     -fx-background-color: #1E252BFF;
@@ -81,6 +111,18 @@
 
 .no_borders {
     -fx-background-insets: 0;
+}
+
+.transparent_background{
+    -fx-background-color: transparent;
+}
+
+.exit_button{
+    -fx-background-color:  #B22D2DFF;
+}
+
+.exit_button:hover{
+    -fx-background-color: #cb3333;
 }
 
 .menu-bar .menu .label {

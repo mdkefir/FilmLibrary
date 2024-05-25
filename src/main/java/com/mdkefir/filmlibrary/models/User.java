@@ -5,6 +5,9 @@ public class User {
     private String username;  // имя пользователя
     private String password;  // пароль пользователя
 
+    private String secretCode;
+    private boolean allowFavoritesAccess;
+
     // Конструктор
     public User(int id, String username, String password) {
         this.id = id;
@@ -30,4 +33,15 @@ public class User {
     public String getPassword() {
         return password;
     }
+
+    public String getSecretCode() { // Добавляем метод getSecretCode
+        return secretCode;
+    }
+
+    public void setSecretCode(String secretCode) { // Добавляем метод setSecretCode
+        this.secretCode = secretCode;
+    }
+
+    public boolean isAllowFavoritesAccess() { return allowFavoritesAccess; }
+    public void setAllowFavoritesAccess(boolean allowFavoritesAccess) { this.allowFavoritesAccess = allowFavoritesAccess; }
 }

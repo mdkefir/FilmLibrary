@@ -2,7 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -21,7 +20,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<VBox fx:id="mainVBox" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="960.0" style="-fx-background-color: #151a1e;" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdkefir.filmlibrary.controllers.MainController">
+<VBox fx:id="mainVBox" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" style="-fx-background-color: #151a1e;" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdkefir.filmlibrary.controllers.MainController">
     <children>
         <SplitPane dividerPositions="0.5" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" style="-fx-background-color: #151a1e;" VBox.vgrow="ALWAYS">
             <items>
@@ -98,7 +97,7 @@
                                         </Label>
                                         <ComboBox fx:id="friendChoose" layoutX="25.0" layoutY="345.0" prefWidth="150.0" promptText="Выберите друга" styleClass="button" />
                                         <Button fx:id="friendDelete" layoutX="23.0" layoutY="375.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="157.0" text="Удалить" />
-                                        <Label fx:id="friendStatusLabel" alignment="CENTER" layoutX="34.0" layoutY="157.0" style="&#10;" styleClass="label-gray" text="ЧЛЕН ВСТАЛ" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                        <Label fx:id="friendStatusLabel" alignment="CENTER" layoutX="34.0" layoutY="157.0" style="&#10;" styleClass="label-gray" text="" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
                                             <font>
                                                 <Font size="14.0" fx:id="x1212" />
                                             </font>
@@ -124,26 +123,14 @@
                                     </ScrollPane>
                                     <AnchorPane fx:id="filtersPane" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="524.0" prefWidth="200.0" style="-fx-background-color: #1e252b;">
                                         <children>
-                                            <Label fx:id="favoriteText1" alignment="CENTER" layoutX="13.0" layoutY="17.0" style="&#10;" styleClass="label-gray" text="Расш. настройки" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
+                                            <Label fx:id="favoriteText1" alignment="CENTER" layoutX="13.0" layoutY="17.0" style="&#10;" styleClass="label-gray" text="Избранные друзей" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
                                                 <font>
                                                     <Font name="Montserrat SemiBold" size="14.0" fx:id="x11" />
                                                 </font>
                                             </Label>
-                                            <Label fx:id="favoriteText2" alignment="CENTER" layoutX="14.0" layoutY="78.0" style="&#10;" styleClass="label-gray" text="Избранные друзей" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
-                                                <font>
-                                                    <Font size="14.0" fx:id="x121" />
-                                                </font>
-                                            </Label>
-                                            <Button fx:id="acceptFavoriteFriendButton" layoutX="15.0" layoutY="138.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="173.0" styleClass="button-filters" text="Применить" textFill="#b1b3b4" />
-                                            <CheckBox fx:id="showAccessCheckBox" layoutX="15.0" layoutY="46.0" mnemonicParsing="false" text="Показать друзьям?" />
-                                            <ComboBox fx:id="favoriteFriendComboBox" layoutX="20.0" layoutY="108.0" prefWidth="150.0" promptText="Выберите друга" styleClass="button" />
-                                            <TextField fx:id="fieldSecretWord" layoutX="23.0" layoutY="201.0" prefHeight="23.0" prefWidth="157.0" styleClass="no_borders" />
-                                            <Label fx:id="favoriteText21" alignment="CENTER" layoutX="16.0" layoutY="173.0" style="&#10;" styleClass="label-gray" text="Секретное слово" textAlignment="CENTER" textFill="#b1b3b4" wrapText="false">
-                                                <font>
-                                                    <Font size="14.0" fx:id="x1213" />
-                                                </font>
-                                            </Label>
-                                            <Button fx:id="applySecretWordButton" layoutX="15.0" layoutY="224.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="173.0" styleClass="button-filters" text="Применить" textFill="#b1b3b4" />
+                                            <Button fx:id="acceptFavoriteFriendButton" layoutX="14.0" layoutY="75.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="173.0" styleClass="button-filters" text="Применить" textFill="#b1b3b4" />
+                                            <ComboBox fx:id="favoriteFriendComboBox" layoutX="19.0" layoutY="45.0" prefWidth="150.0" promptText="Выберите друга" styleClass="button" />
+                                 <Label fx:id="warningFavoriteLabel" layoutX="19.0" layoutY="110.0" />
                                         </children>
                                         <opaqueInsets>
                                             <Insets />
