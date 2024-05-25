@@ -1,10 +1,10 @@
 package com.mdkefir.filmlibrary.models;
 
-public class SportEvent {
+public class Cartoon {
     public String title;
     public String imagePath;
 
-    public SportEvent(String title, String imagePath) {
+    public Cartoon(String title, String imagePath) {
         this.title = title;
         this.imagePath = imagePath;
     }
