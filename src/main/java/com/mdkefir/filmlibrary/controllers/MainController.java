@@ -4,8 +4,6 @@ import com.mdkefir.filmlibrary.Database;
 import com.mdkefir.filmlibrary.models.Movie;
 import com.mdkefir.filmlibrary.models.User;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -55,8 +53,6 @@ public class MainController implements AuthCallback{
         updateFriendList(); // Обновляем список друзей
     }
 
-    @FXML private TextField searchField;
-
     @FXML
     private ScrollPane scrollPaneMovie; // Добавьте ScrollPane в FXML и свяжите его здесь
 
@@ -67,21 +63,6 @@ public class MainController implements AuthCallback{
 
     private Stage accountStage;
 
-    // Добавляем поля класса для окна регистрации/логина
-    @FXML
-    private Label statusLabel = new Label(""); // Для сообщений о состоянии
-
-    @FXML
-    private ToggleButton loginPageButton;
-
-    @FXML
-    private ToggleButton registerPageButton;
-
-    @FXML
-    private Label secretText;
-
-    @FXML
-    private TextField secretField;
 
     @FXML
     private Label warningFavoriteLabel;
@@ -90,32 +71,7 @@ public class MainController implements AuthCallback{
     private Database db;
 
     @FXML
-    private HBox searchHBox;
-
-
-    @FXML
-    private AnchorPane authPane; // Панель авторизации/регистрации
-
-    @FXML
-    private Label filmLabel;
-
-    @FXML
     private TilePane moviesTilePane; // Это корневой элемент вашего интерфейса
-
-    @FXML
-    private void handleFilmsMenu() {
-        // Обработка нажатия на кнопку "Фильмы"
-    }
-
-    @FXML
-    private void handleSeriesMenu() {
-        // Обработка нажатия на кнопку "Сериалы"
-    }
-
-    @FXML
-    private void handleSearch() {
-        // Обработка поиска
-    }
 
     @FXML
     private ToggleButton moviesButton;
@@ -132,16 +88,11 @@ public class MainController implements AuthCallback{
     private ToggleButton favoritesButton;
 
     @FXML
-    private ToggleGroup categoryToggleGroup = new ToggleGroup();
-
-    @FXML
     private AnchorPane friendsPane;
 
     @FXML
     private AnchorPane filtersPane;
 
-    @FXML
-    private CheckBox showAccessCheckBox;
 
     @FXML
     private ComboBox<String> favoriteFriendComboBox;
@@ -150,17 +101,10 @@ public class MainController implements AuthCallback{
     @FXML
     private Button acceptFavoriteFriendButton;
 
-    @FXML
-    private Label favoriteText1;
-
-    @FXML
-    private Label favoriteText2;
 
     @FXML
     private ToggleButton friendsButton;
 
-    @FXML
-    private Rectangle friendRectangle;
 
     @FXML
     private Label friendStatusLabel;
@@ -171,8 +115,6 @@ public class MainController implements AuthCallback{
     private TextField secretCodeFriend;
     @FXML
     private ComboBox<String> friendChoose;
-    @FXML
-    private TextField fieldSecretWord;
 
     @FXML
     private Button friendAdd;
