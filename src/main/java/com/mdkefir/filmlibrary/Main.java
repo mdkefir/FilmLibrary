@@ -23,7 +23,7 @@ public class Main extends Application {
             Parent root = FXMLLoader.load(getClass().getResource("/com/mdkefir/filmlibrary/fxml/main.fxml"));
             Scene scene = new Scene(root);
             primaryStage.setScene(scene);
-            primaryStage.setTitle("Фильмотека");
+            primaryStage.setTitle("FilmLibrary");
             primaryStage.show();
         } catch(Exception e) {
             e.printStackTrace();

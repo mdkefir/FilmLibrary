@@ -15,7 +15,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import java.awt.image.BufferedImage;
@@ -23,8 +22,6 @@ import java.io.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,7 +56,6 @@ public class MainController implements AuthCallback{
     }
 
     @FXML private TextField searchField;
-    @FXML private Button searchButton;
 
     @FXML
     private ScrollPane scrollPaneMovie; // Добавьте ScrollPane в FXML и свяжите его здесь
@@ -81,8 +77,6 @@ public class MainController implements AuthCallback{
     @FXML
     private ToggleButton registerPageButton;
 
-    @FXML
-    private Button resetButton;
     @FXML
     private Label secretText;
 
@@ -118,218 +112,9 @@ public class MainController implements AuthCallback{
         // Обработка нажатия на кнопку "Сериалы"
     }
 
-    private boolean viewingOwnFavorites = true;
-    private boolean viewingFriendFavorites = false;
-
-    private String currentFriend = null;
-
-
     @FXML
     private void handleSearch() {
-        String keyword = searchField.getText().trim();
-        clearContent();
-        if (keyword.isEmpty()) {
-            if ("favorites".equals(currentCategory)) {
-                if (viewingFriendFavorites) {
-                    loadFriendFavorites(currentFriend);
-                } else {
-                    loadAllFavorites();
-                }
-            } else {
-                showLoadingScreen();
-                loadMovies();
-            }
-        } else {
-            if ("favorites".equals(currentCategory)) {
-                if (viewingFriendFavorites) {
-                    searchFriendFavorites(currentFriend, keyword);
-                } else {
-                    searchFavorites(keyword);
-                }
-            } else {
-                showLoadingScreen();
-                loadSearchResults(keyword);
-            }
-        }
-    }
-
-
-    private void loadAllFavorites() {
-        if (currentUser == null) {
-            System.out.println("Вы не авторизированы");
-            return;
-        }
-        String sql = "SELECT title, year, rating, image_path FROM favorites WHERE user_id = ?";
-        try (Connection conn = db.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, currentUser.getId());
-            ResultSet rs = pstmt.executeQuery();
-            List<Movie> favoriteMovies = new ArrayList<>();
-            while (rs.next()) {
-                String title = rs.getString("title");
-                String year = rs.getString("year");
-                String rating = rs.getString("rating");
-                String imagePath = rs.getString("image_path");
-                favoriteMovies.add(new Movie(title, year, rating, imagePath));
-            }
-            Platform.runLater(() -> {
-                try {
-                    clearContent();
-                    updateTilePaneContent(favoriteMovies);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-
-    private void handleLoadFriendFavorites() {
-        String selectedFriend = favoriteFriendComboBox.getValue();
-        if (selectedFriend != null) {
-            currentFriend = selectedFriend;
-            viewingFriendFavorites = true;
-            loadFriendFavorites(selectedFriend);
-        } else {
-            System.out.println("Выберите друга из списка.");
-        }
-    }
-
-
-    public void searchFriendFavorites(String friendName, String keyword) {
-        // Удаляем первый символ из строки поиска
-        String modifiedKeyword = keyword.length() > 1 ? keyword.substring(1) : "";
-
-        String sql = "SELECT f.title, f.year, f.rating, f.image_path " +
-                "FROM favorites f " +
-                "JOIN users u ON f.user_id = u.id " +
-                "WHERE u.username = ? AND u.allow_favorites_access = TRUE AND LOWER(f.title) LIKE ?";
-        try (Connection conn = db.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, friendName);
-            pstmt.setString(2, "%" + modifiedKeyword.toLowerCase() + "%");
-            ResultSet rs = pstmt.executeQuery();
-            List<Movie> favoriteMovies = new ArrayList<>();
-            while (rs.next()) {
-                String title = rs.getString("title");
-                String year = rs.getString("year");
-                String rating = rs.getString("rating");
-                String imagePath = rs.getString("image_path");
-                favoriteMovies.add(new Movie(title, year, rating, imagePath));
-            }
-            Platform.runLater(() -> {
-                try {
-                    if (favoriteMovies.isEmpty()) {
-                        warningFavoriteLabel.setText("Нет результатов");
-                    } else {
-                        updateTilePaneContent(favoriteMovies);
-                        warningFavoriteLabel.setText("Список получен");
-                    }
-                    closeLoadingScreen();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Platform.runLater(() -> {
-                closeLoadingScreen();
-                warningFavoriteLabel.setText("Ошибка загрузки");
-            });
-        }
-    }
-
-
-    public void searchFavorites(String keyword) {
-        // Удаляем первый символ из строки поиска
-        String modifiedKeyword = keyword.length() > 1 ? keyword.substring(1) : "";
-
-        String sql = "SELECT title, year, rating, image_path " +
-                "FROM favorites " +
-                "WHERE user_id = ? AND LOWER(title) LIKE ?";
-        try (Connection conn = db.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, currentUser.getId());
-            pstmt.setString(2, "%" + modifiedKeyword.toLowerCase() + "%");
-            ResultSet rs = pstmt.executeQuery();
-            List<Movie> favoriteMovies = new ArrayList<>();
-            while (rs.next()) {
-                String title = rs.getString("title");
-                String year = rs.getString("year");
-                String rating = rs.getString("rating");
-                String imagePath = rs.getString("image_path");
-                favoriteMovies.add(new Movie(title, year, rating, imagePath));
-            }
-            Platform.runLater(() -> {
-                try {
-                    if (favoriteMovies.isEmpty()) {
-                        warningFavoriteLabel.setText("Нет результатов");
-                    } else {
-                        updateTilePaneContent(favoriteMovies);
-                        warningFavoriteLabel.setText("Список получен");
-                    }
-                    closeLoadingScreen();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Platform.runLater(() -> {
-                closeLoadingScreen();
-                warningFavoriteLabel.setText("Ошибка поиска");
-            });
-        }
-    }
-
-
-
-
-
-
-
-    public void loadSearchResults(String keyword) {
-        String searchUrl = "https://lordfilm.ai/?do=search&subaction=search&search_start=0&full_search=0&story=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-        new Thread(() -> {
-            try {
-                Document doc = Jsoup.connect(searchUrl).get();
-                Elements movieElements = doc.select(".th-item");
-                List<Movie> searchResults = new ArrayList<>();
-                for (Element movieElement : movieElements) {
-                    String title = movieElement.select(".th-title").text();
-                    String year = movieElement.select(".th-year").text();
-                    String rating = movieElement.select(".th-rates .th-rate-imdb span").text(); // Изменено для соответствия
-                    String imageUrl = movieElement.select("img").first().absUrl("src");
-
-                    if (!imageUrl.isEmpty()) {
-                        String localImagePath = downloadAndConvertImage(imageUrl, "images/");
-                        searchResults.add(new Movie(title, year, rating, localImagePath));
-                    }
-                }
-                Platform.runLater(() -> {
-                    try {
-                        if (searchResults.isEmpty()) {
-                            // Если результаты поиска пусты, показать сообщение
-                            warningFavoriteLabel.setText("Нет результатов");
-                        } else {
-                            updateTilePaneContent(searchResults);
-                            warningFavoriteLabel.setText("Список получен");
-                        }
-                        closeLoadingScreen();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-                Platform.runLater(() -> {
-                    closeLoadingScreen();
-                    warningFavoriteLabel.setText("Ошибка поиска");
-                });
-            }
-        }).start();
+        // Обработка поиска
     }
 
     @FXML
@@ -510,13 +295,6 @@ public class MainController implements AuthCallback{
         // Назначаем все кнопки одной группе
         hideAllExtraPanes();
 
-        searchButton.setOnAction(event -> handleSearch());
-        searchField.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                handleSearch();
-            }
-        });
-
         friendsButton.setOnAction(event -> {
             if (currentUser == null) {
 
@@ -531,9 +309,6 @@ public class MainController implements AuthCallback{
             }
         });
 
-        resetButton.setOnAction(event -> {
-            handleReset();
-        });
         favoritesButton.setOnAction(event -> {
             if (currentUser == null) {
 
@@ -633,9 +408,6 @@ public class MainController implements AuthCallback{
         // По умолчанию выбираем "Фильмы"
         moviesButton.setSelected(true);
         /*createLoginPopup();*/
-
-        nameFriend.setPromptText("Введите имя друга");
-        secretCodeFriend.setPromptText("Введите код друга");
     }
 
     private void hideAllExtraPanes() {
@@ -728,7 +500,7 @@ public class MainController implements AuthCallback{
         favoriteCheckBox.setSelected(currentUser != null && isFavorite(movie.getTitle()));
         favoriteCheckBox.setOnAction(event -> {
             if (currentUser == null) {
-
+                showAuthorizeScreen();
                 System.out.println("Вы не авторизированы");
                 favoriteCheckBox.setSelected(false);
                 return;
@@ -1039,7 +811,6 @@ public class MainController implements AuthCallback{
     }
 
 
-
     @FXML
     private void handleAddFriend() {
         String friendName = nameFriend.getText();
@@ -1079,21 +850,13 @@ public class MainController implements AuthCallback{
         }
     }
 
-    @FXML
-    private void handleReset() {
-        // Сбрасываем выбор друга в ComboBox
-        friendChoose.getSelectionModel().clearSelection();
-        favoriteFriendComboBox.getSelectionModel().clearSelection();
-
-        // Сбрасываем состояние просмотра избранных друга
-        viewingFriendFavorites = false;
-        currentFriend = null;
-
-        // Загружаем избранные фильмы текущего пользователя
-        loadAllFavorites();
-
-        // Очистить сообщение об ошибке
-        warningFavoriteLabel.setText("Фильтры сброшены");
+    private void handleLoadFriendFavorites() {
+        String selectedFriend = favoriteFriendComboBox.getValue();
+        if (selectedFriend != null) {
+            loadFriendFavorites(selectedFriend);
+        } else {
+            System.out.println("Выберите друга из списка.");
+        }
     }
 
     public boolean updateAllowFavoritesAccess(int userId, boolean allowAccess) {
@@ -1111,16 +874,24 @@ public class MainController implements AuthCallback{
     }
 
     private void loadFriendFavorites(String friendName) {
-        String sql = "SELECT f.title, f.year, f.rating, f.image_path " +
+        String checkAccessSql = "SELECT allow_favorites_access FROM users WHERE username = ?";
+        String getFavoritesSql = "SELECT f.title, f.year, f.rating, f.image_path " +
                 "FROM favorites f " +
                 "JOIN users u ON f.user_id = u.id " +
-                "WHERE u.username = ? AND u.allow_favorites_access = TRUE";
+                "WHERE u.username = ?";
         try (Connection conn = db.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, friendName);
-            ResultSet rs = pstmt.executeQuery();
-            List<Movie> favoriteMovies = new ArrayList<>();
-            if (rs.isBeforeFirst()) { // Проверка, есть ли результаты
+             PreparedStatement checkAccessStmt = conn.prepareStatement(checkAccessSql);
+             PreparedStatement getFavoritesStmt = conn.prepareStatement(getFavoritesSql)) {
+
+            // Проверяем доступ к избранному
+            checkAccessStmt.setString(1, friendName);
+            ResultSet accessResult = checkAccessStmt.executeQuery();
+
+            if (accessResult.next() && accessResult.getBoolean("allow_favorites_access")) {
+                // Доступ разрешен, загружаем избранные фильмы
+                getFavoritesStmt.setString(1, friendName);
+                ResultSet rs = getFavoritesStmt.executeQuery();
+                List<Movie> favoriteMovies = new ArrayList<>();
                 while (rs.next()) {
                     String title = rs.getString("title");
                     String year = rs.getString("year");
@@ -1132,26 +903,21 @@ public class MainController implements AuthCallback{
                     try {
                         clearContent();
                         updateTilePaneContent(favoriteMovies);
-                        warningFavoriteLabel.setText("Список получен");
+                        warningFavoriteLabel.setText("Список фильмов получен");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
             } else {
+                // Доступ запрещен, выводим сообщение
                 Platform.runLater(() -> {
-                    warningFavoriteLabel.setText("Доступ ограничен");
-                    closeLoadingScreen();
+                    warningFavoriteLabel.setText("Доступ запрещен");
                 });
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            Platform.runLater(() -> {
-                closeLoadingScreen();
-                warningFavoriteLabel.setText("Ошибка загрузки");
-            });
+            System.out.println("Ошибка загрузки избранных фильмов друга: " + e.getMessage());
         }
     }
-
 
 
 

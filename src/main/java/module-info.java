@@ -10,6 +10,7 @@ module com.mdkefir.filmlibrary {
     requires java.desktop;
     requires java.sql;
 
+    opens com.mdkefir.filmlibrary to javafx.fxml;
     opens com.mdkefir.filmlibrary.controllers to javafx.fxml;
     exports com.mdkefir.filmlibrary;
     exports com.mdkefir.filmlibrary.controllers;
