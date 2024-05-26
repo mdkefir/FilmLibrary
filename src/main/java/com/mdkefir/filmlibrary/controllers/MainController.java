@@ -1,5 +1,4 @@
 package com.mdkefir.filmlibrary.controllers;
-
 import com.mdkefir.filmlibrary.Database;
 import com.mdkefir.filmlibrary.models.Movie;
 import com.mdkefir.filmlibrary.models.User;
@@ -32,8 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import javafx.scene.shape.Rectangle;
 import javafx.stage.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
