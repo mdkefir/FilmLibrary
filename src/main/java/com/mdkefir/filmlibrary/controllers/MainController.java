@@ -129,8 +129,6 @@ public class MainController implements AuthCallback{
     private boolean viewingFriendFavorites = false;
     private String currentFriend = null;
 
-    private String selectedFriend;
-
     private int currentUserId;
 
     public void setCurrentUserId(int userId) {
@@ -203,33 +201,6 @@ public class MainController implements AuthCallback{
         }
         return mediaList;
     }
-
-    /*
-    public List<Movie> parseFilms() {
-    List<Movie> movies = new ArrayList<>();
-    String baseUrl = "https://lordfilm.ai/filmy/page/";
-
-    try {
-        for (int i = 1; i <= 5; i++) { // Loop through pages 1 to 5
-            Document doc = Jsoup.connect(baseUrl + i + "/").get();
-            Elements movieElements = doc.select(".sect-cont.sect-items.clearfix .th-item");
-
-            for (Element movieElement : movieElements) {
-                String title = movieElement.select(".th-title").text();
-                String imageUrl = movieElement.select("img").first().absUrl("src");
-
-                if (!imageUrl.isEmpty()) {
-                    movies.add(new Movie(title, imageUrl));
-                }
-            }
-        }
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-
-    return movies;
-}*/
-
 
     // Переменные для хранения исходных размеров filtersPane
     private double originalFiltersPaneWidth;
@@ -501,71 +472,6 @@ public class MainController implements AuthCallback{
                 closeLoadingScreen();
                 warningFavoriteLabel.setText("Ошибка загрузки результатов поиска");
             });
-        }
-    }
-
-
-
-    private void searchMovies(String searchText) {
-        String url = "https://lordfilm.ai/?do=search&subaction=search&search_start=0&full_search=0&story=" + searchText;
-
-        new Thread(() -> {
-            try {
-                Document doc = Jsoup.connect(url).get();
-                Elements mediaElements = doc.select(".th-item");
-
-                List<Movie> mediaList = new ArrayList<>();
-                for (Element mediaElement : mediaElements) {
-                    String title = mediaElement.select(".th-title").text();
-                    String year = mediaElement.select(".th-year").text();
-                    String rating = mediaElement.select(".th-rates .th-rate.th-rate-imdb").text();
-                    String imageUrl = mediaElement.select("img").first().absUrl("src");
-
-                    if (!imageUrl.isEmpty()) {
-                        String localImagePath = downloadAndConvertImage(imageUrl, "images/");
-                        mediaList.add(new Movie(title, year, rating, localImagePath));
-                    }
-                }
-
-                Platform.runLater(() -> {
-                    try {
-                        clearContent();
-                        updateTilePaneContent(mediaList);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
-    private void searchOwnFavorites(String searchText) {
-        String sql = "SELECT title, year, rating, image_path FROM favorites WHERE user_id = ? AND LOWER(title) LIKE ?";
-        try (Connection conn = db.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, currentUser.getId());
-            pstmt.setString(2, "%" + searchText + "%");
-            ResultSet rs = pstmt.executeQuery();
-            List<Movie> favoriteMovies = new ArrayList<>();
-            while (rs.next()) {
-                String title = rs.getString("title");
-                String year = rs.getString("year");
-                String rating = rs.getString("rating");
-                String imagePath = rs.getString("image_path");
-                favoriteMovies.add(new Movie(title, year, rating, imagePath));
-            }
-            Platform.runLater(() -> {
-                try {
-                    clearContent();
-                    updateTilePaneContent(favoriteMovies);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
         }
     }
 

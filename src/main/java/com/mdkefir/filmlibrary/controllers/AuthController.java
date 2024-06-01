@@ -40,8 +40,6 @@ public class AuthController {
 
     private Database db;
 
-    MainController maincontroller = new MainController();
-
     private AuthCallback authCallback;
 
     public void setAuthCallback(AuthCallback authCallback) {
@@ -110,24 +108,6 @@ public class AuthController {
             System.out.println("Ошибка получения ID пользователя: " + e.getMessage());
         }
         return -1;  // Возвращаем -1, если пользователь не найден
-    }
-
-    public User getUserById(int userId) {
-        String sql = "SELECT id, username, password, secret_code, allow_favorites_access FROM users WHERE id = ?";
-        try (Connection conn = db.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                User user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("password"));
-                user.setSecretCode(rs.getString("secret_code"));
-                user.setAllowFavoritesAccess(rs.getBoolean("allow_favorites_access"));
-                return user;
-            }
-        } catch (SQLException e) {
-            System.out.println("Ошибка получения пользователя: " + e.getMessage());
-        }
-        return null;
     }
 
 
